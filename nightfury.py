@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from rlpy.Agents import SARSA
-from rlpy.Representations import IncrementalTabular
+from rlpy.Representations import IncrementalTabular, RBF
 from rlpy.Policies import eGreedy
 from rlpy.Experiments import Experiment
 import numpy as np
@@ -8,7 +8,7 @@ import hack_domain
 import os
 
 
-def make_experiment(exp_id=1, path="./results/"):
+def make_experiment(exp_id=1, path="./results/ITab"):
     """
     Each file specifying an experimental setup should contain a
     make_experiment function which returns an instance of the Experiment
@@ -27,6 +27,13 @@ def make_experiment(exp_id=1, path="./results/"):
 
     # Representation
     representation = IncrementalTabular(domain, discretization=20)
+    opt["path"] = "./results/ITab"
+    """
+    representation = RBF(domain, num_rbfs=int(206.),
+                         resolution_max=25., resolution_min=25.,
+                         const_feature=False, normalize=True, seed=exp_id)
+    opt["path"] = "./results/RBF"
+    """
 
     # Policy
     policy = eGreedy(representation, epsilon=0.2)

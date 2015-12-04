@@ -52,6 +52,5 @@ class HackDomain(Domain):
         terminal = self.isTerminal()
         actions = self.possibleActions()
         ba = representation.bestActions(self.state, terminal, actions)
-        ba = representation.Qs(self.state, terminal)
         print("State: %s Best Action: %s" % (str(self.state), str(ba)))
         return
