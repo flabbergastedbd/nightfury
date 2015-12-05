@@ -45,7 +45,7 @@ def make_experiment(exp_id=1, path="./results/ITab"):
                        learn_rate_decay_mode="boyan", boyan_N0=100,
                        lambda_=0.)
     opt["checks_per_policy"] = 100
-    opt["max_steps"] = 20
+    opt["max_steps"] = 50
     opt["num_policy_checks"] = 10
     experiment = Experiment(**opt)
     return experiment
