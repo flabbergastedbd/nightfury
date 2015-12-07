@@ -1,0 +1,56 @@
+
+
+ ..|''||   '|| '||'  '|'     |      .|'''.|  '||''|.  
+.|'    ||   '|. '|.  .'     |||     ||..  '   ||   || 
+||      ||   ||  ||  |     |  ||     ''|||.   ||...|' 
+'|.     ||    ||| |||     .''''|.  .     '||  ||      
+ ''|...|'      |   |     .|.  .||. |'....|'  .||.     
+    
+ 
+=================================================================
+OWASP Joomla! Vulnerability Scanner v0.0.4  
+(c) Aung Khant, aungkhant]at[yehg.net
+YGN Ethical Hacker Group, Myanmar, http://yehg.net/lab
+Update by: Web-Center, http://web-center.si (2011)
+=================================================================
+
+
+Vulnerability Entries: 611
+Last update: February 2, 2012
+
+Use "update" option to update the database
+Use "check" option to check the scanner update
+Use "download" option to download the scanner latest version package
+Use svn co to update the scanner and the database
+svn co https://joomscan.svn.sourceforge.net/svnroot/joomscan joomscan 
+
+
+Target: http://www.mb-photography.com
+
+Server: Apache
+
+
+## Checking if the target has deployed an Anti-Scanner measure
+
+[!] Scanning Passed ..... OK 
+
+
+## Fingerprinting in progress ...
+
+~Generic version family ....... [1.5.x]
+
+~1.5.x htaccess.txt revealed [1.5.4 - 1.5.14]
+~1.5.x configuration.php-dist revealed [1.5.1 - 1.5.8]
+~1.5.x en-GB.xml revealed 1.5.8
+~1.5.x en-GB.ini revealed 1.5.8
+~1.5.x admin en-GB.com_config.ini revealed [1.5.7 - 1.5.8]
+~1.5.x admin en-GB.ini revealed 1.5.8
+~1.5.x adminlists.html revealed [1.5.7 - 1.5.14]
+
+* The Exact version found is 1.5.8
+
+## Fingerprinting done.
+
+~[*] Time Taken: 50 sec
+~[*] Send bugs, suggestions, contributions to joomscan@yehg.net
+

@@ -5,9 +5,12 @@ import json
 import subprocess
 import numpy as np
 
+from urlparse import urlparse
+
 class HackAction(object):
     dependent_dims = []
     dependency_dims = []
+    aggression = 0
 
     def hash_string(self, s):
         m = md5.new()
@@ -38,6 +41,15 @@ class HackAction(object):
                 fp.write(content)
         return(content)
 
+    def parse_url(self, target_url):
+        parsed_url = urlparse(target_url)
+        if parsed_url.port == None:
+            if parsed_url.scheme == 'http':
+                parsed_url._replace(port=80)
+            elif parsed_url.scheme == 'https':
+                parsed_url._replace(port=443)
+        return(parsed_url)
+
     def __str__(self):
         return(str_repr)
 
@@ -46,6 +58,8 @@ class HackAction(object):
 
 
 class Whatweb(HackAction):
+    dependency_dims = ['cms']
+    aggression = 2
 
     def run(self, url):
         cms = 0
@@ -63,6 +77,8 @@ class Whatweb(HackAction):
 
 class Wpscan(HackAction):
     dependent_dims = ['cms']
+    dependency_dims = ['cms_version']
+    aggression = 2
 
     def run(self, url):
         version = 0
@@ -72,6 +88,8 @@ class Wpscan(HackAction):
 
 class Joomscan(HackAction):
     dependent_dims = ['cms']
+    dependency_dims = ['cms_version']
+    aggression = 2
 
     def run(self, url):
         version = 0
@@ -82,9 +100,23 @@ class Joomscan(HackAction):
 
 class Droopescan(HackAction):
     dependent_dims = ['cms']
+    dependency_dims = ['cms_version']
+    aggression = 2
 
     def run(self, url):
         version = 0
         data = self.run_command(["droopescan", "scan", "drupal", "-e", "v", "-u", url])
         version = 0 if re.search("No version found", data) else 'Detected'
         return({'cms_version': version})
+
+class Sslscan(HackAction):
+    dependent_dims = ['protocol']
+    dependency_dims = ['ssl_version']
+    aggression = 2
+
+    def run(self, url):
+        version = 0
+        parsed_url = self.parse_url(url)
+        data = self.run_command(["bash", "tools/verify_ssl_cipher_check.sh", parsed_url.hostname, parsed_url.port])
+        version = 0 if re.search("skipped", data) else 'Detected'
+        return({'ssl_version': version})

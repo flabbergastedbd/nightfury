@@ -1,4 +1,6 @@
 from rlpy.Domains.Domain import Domain
+from urlparse import urlparse
+
 import numpy as np
 import os
 import json
@@ -74,6 +76,7 @@ target_dict = {
     "cms_version": 0,
     "port": 0,
     "protocol": 0
+    "ssl_version": 0
 }
 
 class Datastore(object):
@@ -109,7 +112,17 @@ class Datastore(object):
                 return(num_value)
 
     def reset(self, target_url):
-        self.data["targets"][target_url] = dict(target_dict)
+        url = urlparse(target_url)
+        port = url.port
+        if port == None:
+            if url.scheme == 'http':
+                port = 80
+            elif url.scheme == 'https':
+                port = 443
+        temp_dict = dict(target_dict)
+        temp_dict["port"] = self._get_prop_numbered_value('port', port)
+        temp_dict["protocol"] = self._get_prop_numbered_value('protocol', url.scheme)
+        self.data["targets"][target_url] = dict(temp_dict)
 
     def get(self, prop_name, target=None):
         target = target if target else self.current_target
@@ -128,7 +141,5 @@ class Datastore(object):
         if new == True:
             self.current_target = random.choice(self.target_urls)
             self.reset(self.current_target)
-            state = [0 for x in self.ordered_dim_names]
-        else:
-            state = [self.data["targets"][self.current_target][x] for x in self.ordered_dim_names]
+        state = [self.data["targets"][self.current_target][x] for x in self.ordered_dim_names]
         return(state)
