@@ -75,8 +75,7 @@ target_dict = {
     "cms": 0,
     "cms_version": 0,
     "port": 0,
-    "protocol": 0
-    "ssl_version": 0
+    "protocol": 0,
 }
 
 class Datastore(object):

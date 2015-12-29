@@ -43,12 +43,16 @@ class HackAction(object):
 
     def parse_url(self, target_url):
         parsed_url = urlparse(target_url)
-        if parsed_url.port == None:
+        t = {}
+        t['protocol'] = parsed_url.scheme
+        t['port'] = parsed_url.port
+        t['hostname'] = parsed_url.hostname
+        if t['port'] == None:
             if parsed_url.scheme == 'http':
-                parsed_url._replace(port=80)
+                t['port'] = 80
             elif parsed_url.scheme == 'https':
-                parsed_url._replace(port=443)
-        return(parsed_url)
+                t['port'] = 443
+        return(t)
 
     def __str__(self):
         return(str_repr)
@@ -72,6 +76,8 @@ class Whatweb(HackAction):
             cms = 'Drupal'
         elif "Joomla" in data["plugins"]:
             cms = 'Joomla'
+        elif "OpenCart" in data["plugins"]:
+            cms = 'OpenCart'
         return({'cms': cms})
 
 
@@ -117,6 +123,6 @@ class Sslscan(HackAction):
     def run(self, url):
         version = 0
         parsed_url = self.parse_url(url)
-        data = self.run_command(["bash", "tools/verify_ssl_cipher_check.sh", parsed_url.hostname, parsed_url.port])
+        data = self.run_command(["bash", "tools/verify_ssl_cipher_check.sh", parsed_url['hostname'], str(parsed_url['port'])])
         version = 0 if re.search("skipped", data) else 'Detected'
         return({'ssl_version': version})
