@@ -13,13 +13,16 @@ _______________________________________________________________
 _______________________________________________________________
 
 [+] URL: http://typographica.org/
-[+] Started: Sat Dec  5 22:34:49 2015
+[+] Started: Mon Dec  7 12:55:32 2015
 
 [+] robots.txt available under: 'http://typographica.org/robots.txt'
 [+] Interesting entry from robots.txt: Crawl-delay: 2
 [!] The WordPress 'http://typographica.org/readme.html' file exists exposing a version number
 [!] Full Path Disclosure (FPD) in 'http://typographica.org/wp-includes/rss-functions.php': /home/typograp/public_html/wp-includes/rss-functions.php
+[+] Interesting header: AGE: 11
 [+] Interesting header: SERVER: Apache/2.2
+[+] Interesting header: VIA: 1.0 yodlee-proxy.corp.yodlee.com:8080 (http_scan/4.0.2.6.19)
+[+] Interesting header: X-CACHE: HIT from yodlee-proxy.corp.yodlee.com
 [+] XML-RPC Interface available under: http://typographica.org/xmlrpc.php
 [!] Upload directory has directory listing enabled: http://typographica.org/wp-content/uploads/
 
@@ -54,7 +57,7 @@ _______________________________________________________________
  |  Readme: http://typographica.org/wp-content/plugins/wp-super-cache/readme.txt
 [!] Directory listing is enabled: http://typographica.org/wp-content/plugins/wp-super-cache/
 
-[+] Finished: Sat Dec  5 22:35:22 2015
+[+] Finished: Mon Dec  7 12:56:08 2015
 [+] Requests Done: 79
-[+] Memory used: 11.184 MB
-[+] Elapsed time: 00:00:32
+[+] Memory used: 10.516 MB
+[+] Elapsed time: 00:00:36
