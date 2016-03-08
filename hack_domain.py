@@ -67,15 +67,13 @@ class HackDomain(Domain):
         ba = representation.bestActions(state, terminal, actions)
         if not terminal:
             # print("Possible Actions: %s " % (str(actions)))
-            print("State: %s Best Action: %s" % (str(state), type(self.actions[ba[0]]).__name__))
+            print("%s\nBest Action: %s\n\n" % (self.datastore.get_verbose_state(), type(self.actions[ba[0]]).__name__))
         return
 
 
 target_dict = {
     "cms": 0,
     "cms_version": 0,
-    "port": 0,
-    "protocol": 0,
 }
 
 class Datastore(object):
@@ -110,17 +108,16 @@ class Datastore(object):
             finally:
                 return(num_value)
 
+    def _get_prop_string_value(self, prop_name, prop_number):
+        key = prop_name + "___set"
+        try:
+            value = self.data[key][prop_number]
+        except KeyError:
+            value = ''
+        return(value)
+
     def reset(self, target_url):
-        url = urlparse(target_url)
-        port = url.port
-        if port == None:
-            if url.scheme == 'http':
-                port = 80
-            elif url.scheme == 'https':
-                port = 443
         temp_dict = dict(target_dict)
-        temp_dict["port"] = self._get_prop_numbered_value('port', port)
-        temp_dict["protocol"] = self._get_prop_numbered_value('protocol', url.scheme)
         self.data["targets"][target_url] = dict(temp_dict)
 
     def get(self, prop_name, target=None):
@@ -142,3 +139,9 @@ class Datastore(object):
             self.reset(self.current_target)
         state = [self.data["targets"][self.current_target][x] for x in self.ordered_dim_names]
         return(state)
+
+    def get_verbose_state(self):
+        s = ''
+        for x in self.ordered_dim_names:
+            s += "%s: %s\t" % (x, str(self._get_prop_string_value(x, self.data["targets"][self.current_target][x])))
+        return(s)

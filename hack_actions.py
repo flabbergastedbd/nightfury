@@ -41,6 +41,20 @@ class HackAction(object):
                 fp.write(content)
         return(content)
 
+    def make_get_request(self, url):
+        content = ''
+        if not os.path.exists('request_cache'):
+            os.makedirs('request_cache')
+        path = os.path.join('request_cache', self.hash_string(url))
+        if os.path.exists(path):
+            content = open(path, 'r').read()
+        else:
+            resp = requests.get(url)
+            content = resp.text
+            with open(path, 'w') as fp:
+                fp.write(content)
+        return(content)
+
     def parse_url(self, target_url):
         parsed_url = urlparse(target_url)
         t = {}
@@ -76,8 +90,6 @@ class Whatweb(HackAction):
             cms = 'Drupal'
         elif "Joomla" in data["plugins"]:
             cms = 'Joomla'
-        elif "OpenCart" in data["plugins"]:
-            cms = 'OpenCart'
         return({'cms': cms})
 
 
@@ -114,15 +126,3 @@ class Droopescan(HackAction):
         data = self.run_command(["droopescan", "scan", "drupal", "-e", "v", "-u", url])
         version = 0 if re.search("No version found", data) else 'Detected'
         return({'cms_version': version})
-
-class Sslscan(HackAction):
-    dependent_dims = ['protocol']
-    dependency_dims = ['ssl_version']
-    aggression = 2
-
-    def run(self, url):
-        version = 0
-        parsed_url = self.parse_url(url)
-        data = self.run_command(["bash", "tools/verify_ssl_cipher_check.sh", parsed_url['hostname'], str(parsed_url['port'])])
-        version = 0 if re.search("skipped", data) else 'Detected'
-        return({'ssl_version': version})
