@@ -3,9 +3,11 @@ from rlpy.Agents import SARSA
 from rlpy.Representations import IncrementalTabular, RBF
 from rlpy.Policies import eGreedy
 from rlpy.Experiments import Experiment
+from selenium import webdriver
 import numpy as np
 import hack_domain
 import os
+import json
 
 
 def make_experiment(exp_id=1, path="./results/ITab"):
@@ -26,7 +28,11 @@ def make_experiment(exp_id=1, path="./results/ITab"):
     opt["domain"] = domain
 
     # Representation
+    global representation
     representation = IncrementalTabular(domain, discretization=20)
+    if os.path.exists('representation_pickle'):
+        with open('representation_pickle', 'rb') as f:
+            representation.hash = json.load(f)
     opt["path"] = "./results/ITab"
     """
     representation = RBF(domain, num_rbfs=int(206.),
@@ -51,9 +57,14 @@ def make_experiment(exp_id=1, path="./results/ITab"):
     return experiment
 
 if __name__ == '__main__':
-    experiment = make_experiment(exp_id=1)
-    experiment.run(visualize_steps=True,  # should each learning step be shown?
-                   visualize_learning=True,  # show policy / value function?
-                   visualize_performance=0)  # show performance runs?
-    # experiment.plot()
-    experiment.save()
+    try:
+        experiment = make_experiment(exp_id=1)
+        experiment.run(visualize_steps=True,  # should each learning step be shown?
+                       visualize_learning=False,  # show policy / value function?
+                       visualize_performance=0)  # show performance runs?
+        # experiment.plot()
+        experiment.save()
+    except KeyboardInterrupt:
+        with open('representation_pickle', 'wb') as f:
+            json.dump(representation.hash, f)
+        pass
