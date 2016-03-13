@@ -7,7 +7,21 @@ from selenium import webdriver
 import numpy as np
 import hack_domain
 import os
-import json
+import pickle
+
+def representation_pickle(r, action=0):
+    attrs = ['weight_vec', 'bins_per_dim', 'binWidth_per_dim', 'agg_states_num', 'random_state', 'hash', 'features_num']
+    for i in attrs:
+        path = os.path.join('command_cache', i)
+        if action == 0:  # Pickle
+            print("Pickling %s" % (i))
+            with open(path, 'wb') as f:
+                pickle.dump(getattr(r, i), f)
+        elif action == 1 and os.path.exists(path):  # Unpickle
+            print("Unpickling %s" % (i))
+            with open(path, 'rb') as f:
+                setattr(r, i, pickle.load(f))
+    return r
 
 
 def make_experiment(exp_id=1, path="./results/ITab"):
@@ -30,9 +44,7 @@ def make_experiment(exp_id=1, path="./results/ITab"):
     # Representation
     global representation
     representation = IncrementalTabular(domain, discretization=20)
-    if os.path.exists('representation_pickle'):
-        with open('representation_pickle', 'rb') as f:
-            representation.hash = json.load(f)
+    representation = representation_pickle(representation, action=1)
     opt["path"] = "./results/ITab"
     """
     representation = RBF(domain, num_rbfs=int(206.),
@@ -50,8 +62,8 @@ def make_experiment(exp_id=1, path="./results/ITab"):
                        initial_learn_rate=0.1,
                        learn_rate_decay_mode="boyan", boyan_N0=100,
                        lambda_=0.)
-    opt["checks_per_policy"] = 100
-    opt["max_steps"] = 100
+    opt["checks_per_policy"] = 10
+    opt["max_steps"] = 10
     opt["num_policy_checks"] = 10
     experiment = Experiment(**opt)
     return experiment
@@ -60,11 +72,11 @@ if __name__ == '__main__':
     try:
         experiment = make_experiment(exp_id=1)
         experiment.run(visualize_steps=True,  # should each learning step be shown?
-                       visualize_learning=False,  # show policy / value function?
+                       visualize_learning=True,  # show policy / value function?
                        visualize_performance=0)  # show performance runs?
         # experiment.plot()
         experiment.save()
     except KeyboardInterrupt:
-        with open('representation_pickle', 'wb') as f:
-            json.dump(representation.hash, f)
         pass
+    finally:
+        representation_pickle(representation, action=0)

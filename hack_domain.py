@@ -33,7 +33,7 @@ class HackDomain(Domain):
         self.actions = hack_actions.ACTIONS
         self.actions_num = len(self.actions)
         self.statespace_limits = np.array([[0,127] for i in range(len(self.datastore.ordered_dim_names))])
-        self.discount_factor = 0.9
+        self.discount_factor = 0.6
         super(HackDomain, self).__init__()
         self.s0()
 
@@ -64,25 +64,27 @@ class HackDomain(Domain):
 
     def _update_state(self, alert=0):
         e = self._sink_environment
-        print("Sink : %s" % (e))
-        parser = hack_parser.CustomHTMLParser('alert();//')
+        parser = hack_parser.CustomHTMLParser(self.datastore.taint)
         parser.feed(e)
         c_chars = parser.get_control_chars()
         stack = parser.get_stack()
+        cc_string = ''
         for i, div in zip(range(1, 11), stack[::-1]):
             self.datastore.set(str(i) + '_parent_div', div)
         for i, cc in zip(range(1, 11), list(c_chars)):
             self.datastore.set(str(i) + '_control_character', cc)
+            cc_string += ' %d: %c ' % (i, cc)
+        print("Sink : %s (%s)" % (e, cc_string))
         self.datastore.set('alert', alert)
         self.datastore.save()
 
     def _inject_into_environment(self, s):
-        injection_index = self._sink_environment.index('alert();//')
+        injection_index = self._sink_environment.index(self.datastore.taint)
         self._sink_environment = self._sink_environment[:injection_index] + s + self._sink_environment[injection_index:]
 
         self._payloads_environment.append(s)
 
-        browser.get("data:text/html," + self._sink_environment)
+        browser.get("data:text/html," + self._sink_environment.replace(self.datastore.taint, 'alert();//'))
         try:
             WebDriverWait(browser, 0.01).until(EC.alert_is_present(),
                 'Timed out waiting for PA creation confirmation popup to appear.')
@@ -102,6 +104,8 @@ class HackDomain(Domain):
         return(r, self.datastore.get_state(), t, self.possibleActions())
 
     def showLearning(self, representation):
+        pass
+        """
         terminal = self.isTerminal()
         actions = self.possibleActions()
         state = self.datastore.get_state()
@@ -109,6 +113,7 @@ class HackDomain(Domain):
         print(state)
         if not terminal:
             print("%s\nBest Action: %s\n\n" % (self.datastore.get_verbose_state(), str(actions[ba[0]])))
+        """
         return
 
 
@@ -129,6 +134,7 @@ class Datastore(object):
     def __init__(self, f='data.json'):
         self.f = f
         self.current_sink = None
+        self._taint = 'abcdef'
         if os.path.exists(self.f):
             with open(self.f, 'r') as fp:
                 self.data = json.load(fp)
@@ -136,7 +142,13 @@ class Datastore(object):
             self.data = {"sinks":{}}
         self.ordered_dim_names = state_dict.keys()
         self.ordered_dim_names.sort()
-        self.all_sinks = ['<script alert();//></script>']
+        # self.all_sinks = ['<script alert();//></script>', '<script something="alert();//"></script>']
+        self.all_sinks = ['<script %s></script>' % (self.taint)]
+        # self.all_sinks = ['<script something="alert();//"></script>']
+
+    @property
+    def taint(self):
+        return(self._taint)
 
     def save(self):
         with open(self.f, 'w') as fp:
