@@ -69,7 +69,7 @@ def make_experiment(exp_id=1, path="./results/ITab"):
     """
 
     # Policy
-    policy = eGreedy(representation, epsilon=0.4)
+    policy = eGreedy(representation, epsilon=0.2)
 
     # Agent
     global agent
@@ -81,7 +81,7 @@ def make_experiment(exp_id=1, path="./results/ITab"):
     agent = agent_pickle(agent, action=1)
     opt["agent"] = agent
     opt["checks_per_policy"] = 10
-    opt["max_steps"] = 10
+    opt["max_steps"] = 100
     opt["num_policy_checks"] = 10
     experiment = Experiment(**opt)
     return experiment

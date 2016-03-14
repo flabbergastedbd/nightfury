@@ -17,6 +17,16 @@ class CustomHTMLParser(HTMLParser):
     def found(self):
         return(self.found_in_tag_attr_param or self.found_in_tag_attr_value or self.found_in_data)
 
+    def get_context(self):
+        c = ''
+        if self.found_in_tag_attr_param:
+            c = 'attr_param'
+        elif self.found_in_tag_attr_value:
+            c = 'attr_value'
+        elif self.found_in_data:
+            c = 'data'
+        return(c)
+
     def feed(self, data):
         self._sink = data
         HTMLParser.feed(self, data)

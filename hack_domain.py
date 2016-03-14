@@ -23,7 +23,7 @@ class HackDomain(Domain):
     #: Reward for each timestep
     STEP_REWARD = -1
     #: Set by the domain = min(100,rows*cols)
-    episodeCap = 5
+    episodeCap = 3
 
     def __init__(self):
         self.start = 0
@@ -32,7 +32,7 @@ class HackDomain(Domain):
         self.DimNames = self.datastore.ordered_dim_names
         self.actions = hack_actions.ACTIONS
         self.actions_num = len(self.actions)
-        self.statespace_limits = np.array([[0,127] for i in range(len(self.datastore.ordered_dim_names))])
+        self.statespace_limits = np.array([[0,20] for i in range(len(self.datastore.ordered_dim_names))])
         self.discount_factor = 0.6
         super(HackDomain, self).__init__()
         self.s0()
@@ -48,19 +48,20 @@ class HackDomain(Domain):
 
     def possibleActions(self):
         pa = []
-        zero_state_features = []
-        state = self.datastore.get_state()
-        for j, v in enumerate(state):
-            if v == 0:
-                zero_state_features.append(self.DimNames[j])
         for j, a in enumerate(self.actions):
-            if len(list(set(a.dependent_dims) & set(zero_state_features))) == 0:
+            good_to_go = True
+            for dim_name, dim_value in a.dependent_dims.items():
+                state_dim_value = self.datastore.get(dim_name)
+                if state_dim_value == 0 or dim_value not in state_dim_value:
+                    good_to_go = False
+                    break
+            if good_to_go:
                 pa.append(j)
         return(pa)
 
     def isTerminal(self):
         s = self.datastore.get('alert')
-        return(s == 'True')
+        return(s)
 
     def _update_state(self, alert=False):
         e = self._sink_environment
@@ -68,9 +69,7 @@ class HackDomain(Domain):
         parser.feed(e)
         c_chars = parser.get_control_chars()
         stack = parser.get_stack()
-        self.datastore.set('data_context', parser.found_in_data)
-        self.datastore.set('attribute_context', parser.found_in_tag_attr_param)
-        self.datastore.set('value_context', parser.found_in_tag_attr_value)
+        self.datastore.set('context', parser.get_context())
         for i, div in zip(range(1, 3), stack[::-1]):
             self.datastore.set(str(i) + '_pd', div)
         for i, cc in zip(range(1, 3), list(c_chars)):
@@ -87,7 +86,7 @@ class HackDomain(Domain):
 
         browser.get("data:text/html," + self._sink_environment.replace(self.datastore.taint, '<script>alert(9)</script>'))
         try:
-            WebDriverWait(browser, 0.01).until(EC.alert_is_present(),
+            WebDriverWait(browser, 1).until(EC.alert_is_present(),
                 'Timed out waiting for PA creation confirmation popup to appear.')
             alert = browser.switch_to_alert()
             alert.accept()
@@ -118,7 +117,7 @@ class HackDomain(Domain):
         return
 
 
-state_dict = {'alert': 0, 'attribute_context':0, 'value_context':0, 'data_context':0}
+state_dict = {'alert': 0, 'context':0}
 for i in range(1, 3):
     state_dict[str(i) + '_cc'] = 0
 for i in range(1, 3):
@@ -145,13 +144,13 @@ class Datastore(object):
         self.ordered_dim_names.sort()
         # self.all_sinks = ['<script alert();//></script>', '<script something="alert();//"></script>']
         self.all_sinks = [
-            # '<div %s></div>' % (self.taint),
+            '<div %s></div>' % (self.taint),
             '<div something="%s"></div>' % (self.taint),
-            # '<img %s>' % (self.taint),
+            '<img %s>' % (self.taint),
             '<img something="%s">' % (self.taint),
-            # '<table %s></table>' % (self.taint),
+            '<table %s></table>' % (self.taint),
             '<table something="%s"></table>' % (self.taint),
-            # '<button %s></button>' % (self.taint),
+            '<button %s></button>' % (self.taint),
             '<button something="%s"></button>' % (self.taint),
         ]
         # self.all_sinks = ['<script something="%s"></script>' % (self.taint)]
