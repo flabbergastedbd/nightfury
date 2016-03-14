@@ -19,7 +19,7 @@ browser = webdriver.Firefox()
 
 class HackDomain(Domain):
     #: Reward for each timestep spent in the goal region
-    GOAL_REWARD = 100
+    GOAL_REWARD = 10
     #: Reward for each timestep
     STEP_REWARD = -1
     #: Set by the domain = min(100,rows*cols)
@@ -68,6 +68,9 @@ class HackDomain(Domain):
         parser.feed(e)
         c_chars = parser.get_control_chars()
         stack = parser.get_stack()
+        self.datastore.set('data_context', parser.found_in_data)
+        self.datastore.set('attribute_context', parser.found_in_tag_attr_param)
+        self.datastore.set('value_context', parser.found_in_tag_attr_value)
         cc_string = ''
         for i, div in zip(range(1, 11), stack[::-1]):
             self.datastore.set(str(i) + '_parent_div', div)
@@ -84,7 +87,7 @@ class HackDomain(Domain):
 
         self._payloads_environment.append(s)
 
-        browser.get("data:text/html," + self._sink_environment.replace(self.datastore.taint, 'alert();//'))
+        browser.get("data:text/html," + self._sink_environment.replace(self.datastore.taint, '<img src=x onerror="alert();">'))
         try:
             WebDriverWait(browser, 0.01).until(EC.alert_is_present(),
                 'Timed out waiting for PA creation confirmation popup to appear.')
@@ -117,7 +120,7 @@ class HackDomain(Domain):
         return
 
 
-state_dict = {'alert': 0}
+state_dict = {'alert': 0, 'attribute_context':0, 'value_context':0, 'data_context':0}
 for i in range(1, 11):
     state_dict[str(i) + '_control_character'] = 0
 for i in range(1, 11):
@@ -143,8 +146,17 @@ class Datastore(object):
         self.ordered_dim_names = state_dict.keys()
         self.ordered_dim_names.sort()
         # self.all_sinks = ['<script alert();//></script>', '<script something="alert();//"></script>']
-        self.all_sinks = ['<script %s></script>' % (self.taint)]
-        # self.all_sinks = ['<script something="alert();//"></script>']
+        self.all_sinks = [
+            '<div %s></div>' % (self.taint),
+            '<div something="%s"></div>' % (self.taint),
+            '<img %s>' % (self.taint),
+            '<img something="%s">' % (self.taint),
+            '<table %s></table>' % (self.taint),
+            '<table something="%s"></table>' % (self.taint),
+            '<button %s></button>' % (self.taint),
+            '<button something="%s"></button>' % (self.taint),
+        ]
+        # self.all_sinks = ['<script something="%s"></script>' % (self.taint)]
 
     @property
     def taint(self):
