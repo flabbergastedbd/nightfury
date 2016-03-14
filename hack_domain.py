@@ -76,7 +76,6 @@ class HackDomain(Domain):
         for i, cc in zip(range(1, 11), list(c_chars)):
             self.datastore.set(str(i) + '_cc', cc)
         print("Sink : %s (%s)" % (e, self.datastore.get_verbose_state()))
-        print(self.datastore.get_state())
         self.datastore.set('alert', alert)
         self.datastore.save()
 

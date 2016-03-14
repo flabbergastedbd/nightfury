@@ -4,6 +4,7 @@ from rlpy.Representations import IncrementalTabular, RBF
 from rlpy.Policies import eGreedy
 from rlpy.Experiments import Experiment
 from selenium import webdriver
+from xvfbwrapper import Xvfb
 import numpy as np
 import hack_domain
 import os
@@ -87,6 +88,8 @@ def make_experiment(exp_id=1, path="./results/ITab"):
 
 if __name__ == '__main__':
     try:
+        # x = Xvfb(width=1280, heigth=720)
+        # x.start()
         experiment = make_experiment(exp_id=1)
         experiment.run(visualize_steps=True,  # should each learning step be shown?
                        visualize_learning=True,  # show policy / value function?
@@ -96,5 +99,6 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         pass
     finally:
+        # x.stop()
         agent_pickle(agent, action=0)
         representation_pickle(representation, action=0)
