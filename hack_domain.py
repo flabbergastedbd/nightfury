@@ -23,7 +23,7 @@ class HackDomain(Domain):
     #: Reward for each timestep
     STEP_REWARD = -1
     #: Set by the domain = min(100,rows*cols)
-    episodeCap = 3
+    episodeCap = 5
 
     def __init__(self):
         self.start = 0
@@ -60,9 +60,9 @@ class HackDomain(Domain):
 
     def isTerminal(self):
         s = self.datastore.get('alert')
-        return(s != 0)
+        return(s == 'True')
 
-    def _update_state(self, alert=0):
+    def _update_state(self, alert=False):
         e = self._sink_environment
         parser = hack_parser.CustomHTMLParser(self.datastore.taint)
         parser.feed(e)
@@ -71,9 +71,9 @@ class HackDomain(Domain):
         self.datastore.set('data_context', parser.found_in_data)
         self.datastore.set('attribute_context', parser.found_in_tag_attr_param)
         self.datastore.set('value_context', parser.found_in_tag_attr_value)
-        for i, div in zip(range(1, 11), stack[::-1]):
+        for i, div in zip(range(1, 3), stack[::-1]):
             self.datastore.set(str(i) + '_pd', div)
-        for i, cc in zip(range(1, 11), list(c_chars)):
+        for i, cc in zip(range(1, 3), list(c_chars)):
             self.datastore.set(str(i) + '_cc', cc)
         print("Sink : %s (%s)" % (e, self.datastore.get_verbose_state()))
         self.datastore.set('alert', alert)
@@ -91,9 +91,9 @@ class HackDomain(Domain):
                 'Timed out waiting for PA creation confirmation popup to appear.')
             alert = browser.switch_to_alert()
             alert.accept()
-            alert = 1
+            alert = True
         except TimeoutException:
-            alert = 0
+            alert = False
         self._update_state(alert=alert)
 
     def step(self, a):
@@ -119,9 +119,9 @@ class HackDomain(Domain):
 
 
 state_dict = {'alert': 0, 'attribute_context':0, 'value_context':0, 'data_context':0}
-for i in range(1, 11):
+for i in range(1, 3):
     state_dict[str(i) + '_cc'] = 0
-for i in range(1, 11):
+for i in range(1, 3):
     state_dict[str(i) + '_pd'] = 0
 """
 for t in hack_actions.TAGS:  # Used to give relative numbering using xpath
@@ -193,7 +193,7 @@ class Datastore(object):
 
     def get(self, prop_name, sink=None):
         sink = sink if sink else self.current_sink
-        return(self.data["sinks"][sink][prop_name])
+        return(self._get_prop_string_value(prop_name, self.data["sinks"][sink][prop_name]))
 
     def set(self, prop_name, prop_value, sink=None):
         sink = sink if sink else self.current_sink
@@ -214,6 +214,6 @@ class Datastore(object):
     def get_verbose_state(self):
         s = ''
         for x in self.ordered_dim_names:
-            if self.get(x) != 0:
-                s += " %s: %s " % (x, str(self._get_prop_string_value(x, self.data["sinks"][self.current_sink][x])))
+            if self.get(x):
+                s += " %s: %s " % (x, str(self.get(x)))
         return(s)
