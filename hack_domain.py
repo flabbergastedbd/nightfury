@@ -71,13 +71,12 @@ class HackDomain(Domain):
         self.datastore.set('data_context', parser.found_in_data)
         self.datastore.set('attribute_context', parser.found_in_tag_attr_param)
         self.datastore.set('value_context', parser.found_in_tag_attr_value)
-        cc_string = ''
         for i, div in zip(range(1, 11), stack[::-1]):
-            self.datastore.set(str(i) + '_parent_div', div)
+            self.datastore.set(str(i) + '_pd', div)
         for i, cc in zip(range(1, 11), list(c_chars)):
-            self.datastore.set(str(i) + '_control_character', cc)
-            cc_string += ' %d: %c ' % (i, cc)
-        print("Sink : %s (%s)" % (e, cc_string))
+            self.datastore.set(str(i) + '_cc', cc)
+        print("Sink : %s (%s)" % (e, self.datastore.get_verbose_state()))
+        print(self.datastore.get_state())
         self.datastore.set('alert', alert)
         self.datastore.save()
 
@@ -87,7 +86,7 @@ class HackDomain(Domain):
 
         self._payloads_environment.append(s)
 
-        browser.get("data:text/html," + self._sink_environment.replace(self.datastore.taint, '<img src=x onerror="alert();">'))
+        browser.get("data:text/html," + self._sink_environment.replace(self.datastore.taint, '<script>alert(9)</script>'))
         try:
             WebDriverWait(browser, 0.01).until(EC.alert_is_present(),
                 'Timed out waiting for PA creation confirmation popup to appear.')
@@ -122,9 +121,9 @@ class HackDomain(Domain):
 
 state_dict = {'alert': 0, 'attribute_context':0, 'value_context':0, 'data_context':0}
 for i in range(1, 11):
-    state_dict[str(i) + '_control_character'] = 0
+    state_dict[str(i) + '_cc'] = 0
 for i in range(1, 11):
-    state_dict[str(i) + '_parent_tag'] = 0
+    state_dict[str(i) + '_pd'] = 0
 """
 for t in hack_actions.TAGS:  # Used to give relative numbering using xpath
     state_dict[t] = 0
@@ -147,13 +146,13 @@ class Datastore(object):
         self.ordered_dim_names.sort()
         # self.all_sinks = ['<script alert();//></script>', '<script something="alert();//"></script>']
         self.all_sinks = [
-            '<div %s></div>' % (self.taint),
+            # '<div %s></div>' % (self.taint),
             '<div something="%s"></div>' % (self.taint),
-            '<img %s>' % (self.taint),
+            # '<img %s>' % (self.taint),
             '<img something="%s">' % (self.taint),
-            '<table %s></table>' % (self.taint),
+            # '<table %s></table>' % (self.taint),
             '<table something="%s"></table>' % (self.taint),
-            '<button %s></button>' % (self.taint),
+            # '<button %s></button>' % (self.taint),
             '<button something="%s"></button>' % (self.taint),
         ]
         # self.all_sinks = ['<script something="%s"></script>' % (self.taint)]
@@ -216,5 +215,6 @@ class Datastore(object):
     def get_verbose_state(self):
         s = ''
         for x in self.ordered_dim_names:
-            s += "%s: %s\t" % (x, str(self._get_prop_string_value(x, self.data["sinks"][self.current_sink][x])))
+            if self.get(x) != 0:
+                s += " %s: %s " % (x, str(self._get_prop_string_value(x, self.data["sinks"][self.current_sink][x])))
         return(s)
