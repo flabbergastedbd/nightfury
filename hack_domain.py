@@ -10,11 +10,10 @@ import os
 import re
 import json
 import random
-import importlib
+import nf_shared
 import hack_actions
 import hack_parser
 
-browser = webdriver.Firefox()
 
 
 class HackDomain(Domain):
@@ -91,15 +90,8 @@ class HackDomain(Domain):
 
         self._payloads_environment.append(s)
 
-        browser.get("data:text/html," + self._sink_environment.replace(self.datastore.taint, '<script>alert(9)</script>'))
-        try:
-            WebDriverWait(browser, 0.01).until(EC.alert_is_present(),
-                'Timed out waiting for PA creation confirmation popup to appear.')
-            alert = browser.switch_to_alert()
-            alert.accept()
-            alert = True
-        except TimeoutException:
-            alert = False
+        nf_shared.browser.get("data:text/html,<script>var popup = false;</script>" + self._sink_environment.replace(self.datastore.taint, '<script>popup = true;</script>'))
+        alert = nf_shared.browser.execute_script('return popup;');
         self._update_state(alert=alert)
 
     def step(self, a):

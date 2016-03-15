@@ -9,6 +9,8 @@ import numpy as np
 import hack_domain
 import os
 import pickle
+import signal
+import nf_shared
 
 def agent_pickle(r, action=0):
     attrs = ['lambda_', 'eligibility_trace', 'eligibility_trace_s']
@@ -88,8 +90,7 @@ def make_experiment(exp_id=1, path="./results/ITab"):
 
 if __name__ == '__main__':
     try:
-        # x = Xvfb(width=1280, heigth=720)
-        # x.start()
+        nf_shared.browser = webdriver.PhantomJS()
         experiment = make_experiment(exp_id=1)
         experiment.run(visualize_steps=True,  # should each learning step be shown?
                        visualize_learning=True,  # show policy / value function?
@@ -99,6 +100,7 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         pass
     finally:
-        # x.stop()
+        nf_shared.browser.service.process.send_signal(signal.SIGTERM)
+        nf_shared.browser.quit()
         agent_pickle(agent, action=0)
         representation_pickle(representation, action=0)
