@@ -23,7 +23,7 @@ class HackDomain(Domain):
     #: Reward for each timestep
     STEP_REWARD = -1
     #: Set by the domain = min(100,rows*cols)
-    episodeCap = 3
+    episodeCap = 5
 
     def __init__(self):
         self.start = 0
@@ -67,13 +67,20 @@ class HackDomain(Domain):
         e = self._sink_environment
         parser = hack_parser.CustomHTMLParser(self.datastore.taint)
         parser.feed(e)
-        c_chars = parser.get_control_chars()
-        stack = parser.get_stack()
+        c_chars = list(parser.get_control_chars())
+        stack = parser.get_stack()[::-1]
         self.datastore.set('context', parser.get_context())
-        for i, div in zip(range(1, 3), stack[::-1]):
+
+        if len(stack) < 2:
+            stack += [0] * (2 - len(stack))
+        for i, div in zip(range(1, 3), stack):
             self.datastore.set(str(i) + '_pd', div)
+
+        if len(c_chars) < 2:
+            c_chars += [0] * (2 - len(c_chars))
         for i, cc in zip(range(1, 3), list(c_chars)):
             self.datastore.set(str(i) + '_cc', cc)
+
         print("Sink : %s (%s)" % (e, self.datastore.get_verbose_state()))
         self.datastore.set('alert', alert)
         self.datastore.save()
@@ -86,7 +93,7 @@ class HackDomain(Domain):
 
         browser.get("data:text/html," + self._sink_environment.replace(self.datastore.taint, '<script>alert(9)</script>'))
         try:
-            WebDriverWait(browser, 1).until(EC.alert_is_present(),
+            WebDriverWait(browser, 0.01).until(EC.alert_is_present(),
                 'Timed out waiting for PA creation confirmation popup to appear.')
             alert = browser.switch_to_alert()
             alert.accept()
@@ -144,14 +151,19 @@ class Datastore(object):
         self.ordered_dim_names.sort()
         # self.all_sinks = ['<script alert();//></script>', '<script something="alert();//"></script>']
         self.all_sinks = [
-            '<div %s></div>' % (self.taint),
-            '<div something="%s"></div>' % (self.taint),
-            '<img %s>' % (self.taint),
-            '<img something="%s">' % (self.taint),
-            '<table %s></table>' % (self.taint),
-            '<table something="%s"></table>' % (self.taint),
-            '<button %s></button>' % (self.taint),
-            '<button something="%s"></button>' % (self.taint),
+            '<title>%s</title>' % (self.taint),
+            # '<div %s></div>' % (self.taint),
+            # '<div something="%s"></div>' % (self.taint),
+            # "<div something='%s'></div>" % (self.taint),
+            # '<img %s>' % (self.taint),
+            # '<img something="%s">' % (self.taint),
+            # "<img something='%s'>" % (self.taint),
+            # '<table %s></table>' % (self.taint),
+            # '<table something="%s"></table>' % (self.taint),
+            # "<table something='%s'></table>" % (self.taint),
+            # '<button %s></button>' % (self.taint),
+            # '<button something="%s"></button>' % (self.taint),
+            # "<button something='%s'></button>" % (self.taint),
         ]
         # self.all_sinks = ['<script something="%s"></script>' % (self.taint)]
 

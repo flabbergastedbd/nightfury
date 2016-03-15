@@ -8,6 +8,7 @@ class CustomHTMLParser(HTMLParser):
         self.stack = []
         self.found_in_tag_attr_param = False
         self.found_in_tag_attr_value = False
+        self.found_in_tag_name = False
         self.found_in_data = False
         self.taint = taint
         self.trace = ''
@@ -15,7 +16,7 @@ class CustomHTMLParser(HTMLParser):
 
     @property
     def found(self):
-        return(self.found_in_tag_attr_param or self.found_in_tag_attr_value or self.found_in_data)
+        return(self.found_in_tag_name or self.found_in_tag_attr_param or self.found_in_tag_attr_value or self.found_in_data)
 
     def get_context(self):
         c = ''
@@ -23,6 +24,8 @@ class CustomHTMLParser(HTMLParser):
             c = 'attr_param'
         elif self.found_in_tag_attr_value:
             c = 'attr_value'
+        elif self.found_in_tag_name:
+            c = 'tag_name'
         elif self.found_in_data:
             c = 'data'
         return(c)
@@ -38,6 +41,8 @@ class CustomHTMLParser(HTMLParser):
         if self.found == False:
             if tag != 'div':
                 self.stack.append(tag)
+                if self.taint in tag:
+                    self.found_in_tag_name = True
             for param, value in attrs:
                 if self.taint in param:
                     self.found_in_tag_attr_param = True
@@ -110,7 +115,7 @@ class CustomHTMLParser(HTMLParser):
         return(c_chars)
 
 if __name__ == '__main__':
-    sink = u'<script anything="alert()"></sciprt>'
+    sink = u'<title><alert()</title>'
     parser = CustomHTMLParser('alert()')
     parser.feed(sink)
     print(parser.get_control_chars())
