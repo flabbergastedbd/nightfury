@@ -12,7 +12,7 @@ class CustomHTMLParser(HTMLParser):
         HTMLParser.__init__(self)
 
     def get_context(self):
-        return(self.found)
+        return(self.found or 'Unknown')
 
     def feed(self, data):
         self._sink = data
@@ -24,9 +24,11 @@ class CustomHTMLParser(HTMLParser):
     def handle_starttag(self, tag, attrs):
         if not self.found:
             if tag != 'div':
-                self.stack.append(tag)
                 if self.taint in tag:
                     self.found = 'start_tag_name'
+                    self.trace = tag
+                else:
+                    self.stack.append(tag)
             for param, value in attrs:
                 if self.taint in param:
                     self.found = 'attr_param'
@@ -102,6 +104,7 @@ class CustomHTMLParser(HTMLParser):
 
 if __name__ == '__main__':
     sink = u'<title></alert()</title>'
+    sink = u'<table something="{"(=\'alert()"></table>'
     parser = CustomHTMLParser('alert()')
     parser.feed(sink)
     print(parser.get_control_chars())

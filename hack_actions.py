@@ -52,7 +52,7 @@ class ControlAction(HackAction):
     pass
 
 
-CONTROL_CHARS = [' ', '"', "'", '(', ')', '*', '+', '-', ',', ';', '<', '>', '=', '[', ']', '{', '}', '`']
+CONTROL_CHARS = [' ', '"', "'", '(', ')', '*', '+', '-', ',', ';', '<', '>', '=', '[', ']', '{', '}', '`', '/']
 for i in CONTROL_CHARS:
     ACTIONS.append(ControlAction(i))
 
