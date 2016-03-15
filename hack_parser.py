@@ -6,29 +6,13 @@ from HTMLParser import HTMLParser
 class CustomHTMLParser(HTMLParser):
     def __init__(self, taint):
         self.stack = []
-        self.found_in_tag_attr_param = False
-        self.found_in_tag_attr_value = False
-        self.found_in_tag_name = False
-        self.found_in_data = False
+        self.found = None
         self.taint = taint
         self.trace = ''
         HTMLParser.__init__(self)
 
-    @property
-    def found(self):
-        return(self.found_in_tag_name or self.found_in_tag_attr_param or self.found_in_tag_attr_value or self.found_in_data)
-
     def get_context(self):
-        c = ''
-        if self.found_in_tag_attr_param:
-            c = 'attr_param'
-        elif self.found_in_tag_attr_value:
-            c = 'attr_value'
-        elif self.found_in_tag_name:
-            c = 'tag_name'
-        elif self.found_in_data:
-            c = 'data'
-        return(c)
+        return(self.found)
 
     def feed(self, data):
         self._sink = data
@@ -38,35 +22,37 @@ class CustomHTMLParser(HTMLParser):
         return(self.stack)
 
     def handle_starttag(self, tag, attrs):
-        if self.found == False:
+        if not self.found:
             if tag != 'div':
                 self.stack.append(tag)
                 if self.taint in tag:
-                    self.found_in_tag_name = True
+                    self.found = 'start_tag_name'
             for param, value in attrs:
                 if self.taint in param:
-                    self.found_in_tag_attr_param = True
+                    self.found = 'attr_param'
                     self.trace = param
                 elif value and self.taint in value:
-                    self.found_in_tag_attr_value = True
+                    self.found = 'attr_value'
                     self.trace = value
 
     def handle_endtag(self, tag):
-        if self.found == False:
+        if not self.found:
+            if self.taint in tag:
+                self.found = 'end_tag_name'
             if len(self.stack) > 0 and self.stack[-1] == tag:
                 self.stack.pop()
 
     def handle_data(self, data):
-        if self.found == False:
+        if not self.found:
             if self.taint in data:
                 self.trace = data
-                self.found_in_data = True
+                self.found = 'data'
 
     def get_control_chars(self):
         c_chars = ''
-        if self.found_in_tag_attr_param:
+        if self.found == 'attr_param':
             c_chars = c_chars + '>'
-        elif self.found_in_tag_attr_value:
+        elif self.found == 'attr_value':
             c_chars = c_chars + '>'
 
             c_chars = self._sink[self._sink.index(self.trace) - 1] + c_chars
@@ -115,7 +101,7 @@ class CustomHTMLParser(HTMLParser):
         return(c_chars)
 
 if __name__ == '__main__':
-    sink = u'<title><alert()</title>'
+    sink = u'<title></alert()</title>'
     parser = CustomHTMLParser('alert()')
     parser.feed(sink)
     print(parser.get_control_chars())

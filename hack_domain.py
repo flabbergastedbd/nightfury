@@ -152,18 +152,18 @@ class Datastore(object):
         # self.all_sinks = ['<script alert();//></script>', '<script something="alert();//"></script>']
         self.all_sinks = [
             '<title>%s</title>' % (self.taint),
-            # '<div %s></div>' % (self.taint),
-            # '<div something="%s"></div>' % (self.taint),
-            # "<div something='%s'></div>" % (self.taint),
-            # '<img %s>' % (self.taint),
-            # '<img something="%s">' % (self.taint),
-            # "<img something='%s'>" % (self.taint),
-            # '<table %s></table>' % (self.taint),
-            # '<table something="%s"></table>' % (self.taint),
-            # "<table something='%s'></table>" % (self.taint),
-            # '<button %s></button>' % (self.taint),
-            # '<button something="%s"></button>' % (self.taint),
-            # "<button something='%s'></button>" % (self.taint),
+            '<div %s></div>' % (self.taint),
+            '<div something="%s"></div>' % (self.taint),
+            "<div something='%s'></div>" % (self.taint),
+            '<img %s>' % (self.taint),
+            '<img something="%s">' % (self.taint),
+            "<img something='%s'>" % (self.taint),
+            '<table %s></table>' % (self.taint),
+            '<table something="%s"></table>' % (self.taint),
+            "<table something='%s'></table>" % (self.taint),
+            '<button %s></button>' % (self.taint),
+            '<button something="%s"></button>' % (self.taint),
+            "<button something='%s'></button>" % (self.taint),
         ]
         # self.all_sinks = ['<script something="%s"></script>' % (self.taint)]
 
