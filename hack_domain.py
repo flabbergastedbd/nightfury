@@ -1,9 +1,7 @@
 from rlpy.Domains.Domain import Domain
 from urlparse import urlparse
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import WebDriverException
 
 import numpy as np
 import os
@@ -90,8 +88,12 @@ class HackDomain(Domain):
 
         self._payloads_environment.append(s)
 
-        nf_shared.browser.get("data:text/html,<script>var popup = false;</script>" + self._sink_environment.replace(self.datastore.taint, '<script>popup = true;</script>'))
-        alert = nf_shared.browser.execute_script('return popup;');
+        nf_shared.browser.get("data:text/html," + self._sink_environment.replace(self.datastore.taint, '<script>var popup = true;</script>'))
+        try:
+            nf_shared.browser.execute_script('return popup;');
+            alert = True
+        except WebDriverException:
+            alert = False
         self._update_state(alert=alert)
 
     def step(self, a):
