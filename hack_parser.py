@@ -24,10 +24,13 @@ class CustomHTMLParser(HTMLParser):
     def handle_starttag(self, tag, attrs):
         if not self.found:
             if tag != 'div':
-                if self.taint in tag:
+                if tag.startswith(self.taint):
                     self.found = 'start_tag_name'
                     self.trace = tag
-                elif tag in hack_actions.TAGS:
+                elif self.taint in tag:
+                    self.found = 'start_tag_attr'
+                    self.trace = tag
+                if tag in hack_actions.TAGS:
                     self.stack.append(tag)
             for param, value in attrs:
                 if self.taint in param:
@@ -39,8 +42,10 @@ class CustomHTMLParser(HTMLParser):
 
     def handle_endtag(self, tag):
         if not self.found:
-            if self.taint in tag:
+            if tag.startswith(self.taint):
                 self.found = 'end_tag_name'
+            elif self.taint in tag:
+                self.found = 'end_tag_attr'
             if len(self.stack) > 0 and self.stack[-1] == tag:
                 self.stack.pop()
 
@@ -52,7 +57,7 @@ class CustomHTMLParser(HTMLParser):
 
     def get_control_chars(self):
         c_chars = ''
-        if self.found == 'attr_param':
+        if self.found in ['attr_param', 'start_tag_attr', 'end_tag_attr']:
             c_chars = c_chars + '>'
         elif self.found == 'attr_value':
             c_chars = c_chars + '>'

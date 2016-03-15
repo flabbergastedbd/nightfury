@@ -83,7 +83,7 @@ def make_experiment(exp_id=1, path="./results/ITab"):
     agent = agent_pickle(agent, action=1)
     opt["agent"] = agent
     opt["checks_per_policy"] = 10
-    opt["max_steps"] = 2000
+    opt["max_steps"] = 5000
     opt["num_policy_checks"] = 10
     experiment = Experiment(**opt)
     return experiment
