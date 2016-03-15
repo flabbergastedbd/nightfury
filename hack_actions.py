@@ -39,7 +39,7 @@ class TagAction(HackAction):
     pass
 
 # TAGS = ('a', 'abbr', 'acronym', 'address', 'applet', 'embed', 'object', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'big', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'colgroup', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'ul', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'h1', 'h6', 'head', 'header', 'hr', 'html', 'i', 'iframe', 'img', 'input', 'ins', 'kbd', 'keygen', 'label', 'input', 'legend', 'fieldset', 'li', 'link', 'main', 'map', 'mark', 'menu', 'menuitem')
-TAGS = ('a', 'embed', 'object', 'body', 'button', 'canvas', 'div', 'embed', 'figure', 'form', 'frame', 'iframe', 'img', 'input')
+TAGS = ('a', 'embed', 'object', 'body', 'button', 'canvas', 'div', 'embed', 'figure', 'form', 'frame', 'iframe', 'img', 'input', 'title')
 for i in TAGS:
     ACTIONS.append(TagAction(i))
 

@@ -143,10 +143,10 @@ class Datastore(object):
         self.ordered_dim_names.sort()
         # self.all_sinks = ['<script alert();//></script>', '<script something="alert();//"></script>']
         self.all_sinks = [
-            # '<title>%s</title>' % (self.taint),
-            '<div %s></div>' % (self.taint),
-            '<div something="%s"></div>' % (self.taint),
-            "<div something='%s'></div>" % (self.taint),
+            '<title>%s</title>' % (self.taint),
+            # '<div %s></div>' % (self.taint),
+            # '<div something="%s"></div>' % (self.taint),
+            # "<div something='%s'></div>" % (self.taint),
             # '<img %s>' % (self.taint),
             # '<img something="%s">' % (self.taint),
             # "<img something='%s'>" % (self.taint),

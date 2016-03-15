@@ -27,7 +27,7 @@ class CustomHTMLParser(HTMLParser):
                 if self.taint in tag:
                     self.found = 'start_tag_name'
                     self.trace = tag
-                else:
+                elif tag in hack_actions.TAGS:
                     self.stack.append(tag)
             for param, value in attrs:
                 if self.taint in param:
