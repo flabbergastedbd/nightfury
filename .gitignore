@@ -1,5 +1,6 @@
 *.pyc
 ghostdriver.log
+nohup.out
 
 results
 
