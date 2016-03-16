@@ -66,7 +66,14 @@ class HackDomain(Domain):
         parser.feed(e)
         c_chars = list(parser.get_control_chars())
         stack = parser.get_stack()[::-1]
+        attrs = parser.get_attrs()
         self.datastore.set('context', parser.get_context())
+
+        if len(attrs) < 5:
+            attrs += [(0, 0)] * (5 - len(attrs))
+        for i, attr_pair in zip(range(1, 6), attrs):
+            self.datastore.set(str(i) + '_ap', attr_pair[0])
+            self.datastore.set(str(i) + '_av', attr_pair[1])
 
         if len(stack) < 2:
             stack += [0] * (2 - len(stack))
@@ -88,7 +95,8 @@ class HackDomain(Domain):
 
         self._payloads_environment.append(s)
 
-        nf_shared.browser.get("data:text/html," + self._sink_environment.replace(self.datastore.taint, '<script>var popup = true;</script>'))
+        # nf_shared.browser.get("data:text/html," + self._sink_environment.replace(self.datastore.taint, '<script>var popup = true;</script>'))
+        nf_shared.browser.get("data:text/html," + self._sink_environment.replace(self.datastore.taint, ''))
         try:
             nf_shared.browser.execute_script('return popup;');
             alert = True
@@ -119,10 +127,14 @@ class HackDomain(Domain):
 
 
 state_dict = {'alert': 0, 'context':0}
-for i in range(1, 3):
+for i in range(1, 3): # cc = control character
     state_dict[str(i) + '_cc'] = 0
-for i in range(1, 3):
+for i in range(1, 3): # pd = parent div
     state_dict[str(i) + '_pd'] = 0
+for i in range(1, 6): # ap = attribute parameter
+    state_dict[str(i) + '_ap'] = 0
+for i in range(1, 6): # av = attribute value
+    state_dict[str(i) + '_av'] = 0
 """
 for t in hack_actions.TAGS:  # Used to give relative numbering using xpath
     state_dict[t] = 0
@@ -145,8 +157,9 @@ class Datastore(object):
         self.ordered_dim_names.sort()
         # self.all_sinks = ['<script alert();//></script>', '<script something="alert();//"></script>']
         self.all_sinks = [
+            '<div>%s</div>' % (self.taint),
             # '<title>%s</title>' % (self.taint),
-            '<select><option>%s</option></select>' % (self.taint),
+            # '<select><option>%s</option></select>' % (self.taint),
             # '<div %s></div>' % (self.taint),
             # '<div something="%s"></div>' % (self.taint),
             # "<div something='%s'></div>" % (self.taint),

@@ -31,6 +31,32 @@ class HackAction(object):
 
 
 
+class AttrParamAction(HackAction):
+    """
+    Action representing a event handler
+    """
+    dependent_dims = {'context': 'attr_param'}
+    pass
+
+ATTR_PARAMS = ('onerror', 'onload', 'src')
+for i in ATTR_PARAMS:
+    ACTIONS.append(AttrParamAction(i))
+
+
+
+class AttrValueAction(HackAction):
+    """
+    Action with attr value
+    """
+    dependent_dims = {"context": "attr_value"}
+    pass
+
+ATTR_VALUES = ('x', 'data:text/html,<script>var popup = 1;</script>', 'var popup = 1;')
+for i in ATTR_VALUES:
+    ACTIONS.append(AttrValueAction(i))
+
+
+
 class TagAction(HackAction):
     """
     Action representing a HTML tag
@@ -39,7 +65,8 @@ class TagAction(HackAction):
     pass
 
 # TAGS = ('a', 'abbr', 'acronym', 'address', 'applet', 'embed', 'object', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'big', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'colgroup', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'ul', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'h1', 'h6', 'head', 'header', 'hr', 'html', 'i', 'iframe', 'img', 'input', 'ins', 'kbd', 'keygen', 'label', 'input', 'legend', 'fieldset', 'li', 'link', 'main', 'map', 'mark', 'menu', 'menuitem')
-TAGS = ('a', 'embed', 'object', 'body', 'button', 'canvas', 'div', 'embed', 'figure', 'form', 'frame', 'iframe', 'img', 'input', 'title', 'option', 'select')
+# TAGS = ('a', 'embed', 'object', 'body', 'button', 'canvas', 'div', 'embed', 'figure', 'form', 'frame', 'iframe', 'img', 'input', 'title', 'option', 'select')
+TAGS = ['img']
 for i in TAGS:
     ACTIONS.append(TagAction(i))
 

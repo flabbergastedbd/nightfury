@@ -7,12 +7,16 @@ class CustomHTMLParser(HTMLParser):
     def __init__(self, taint):
         self.stack = []
         self.found = None
+        self.attrs = []
         self.taint = taint
         self.trace = ''
         HTMLParser.__init__(self)
 
     def get_context(self):
         return(self.found or 'Unknown')
+
+    def get_attrs(self):
+        return(self.attrs)
 
     def feed(self, data):
         self._sink = data
@@ -32,11 +36,24 @@ class CustomHTMLParser(HTMLParser):
                     self.trace = tag
                 if tag in hack_actions.TAGS:
                     self.stack.append(tag)
+
+            # New tag found, so override attributes
+            self.attrs = []
             for param, value in attrs:
-                if self.taint in param:
+                if param in hack_actions.ATTR_PARAMS:
+                    v = None
+                    if value in hack_actions.ATTR_VALUES:
+                        v = v
+                    self.attrs.append((param, v))
+
+                if param.startswith(self.taint):
                     self.found = 'attr_param'
                     self.trace = param
-                elif value and self.taint in value:
+                elif self.taint in param:
+                    self.found ='attr_equal_delim'
+                    self.trace = param
+
+                if value and self.taint in value:
                     self.found = 'attr_value'
                     self.trace = value
 
@@ -57,7 +74,7 @@ class CustomHTMLParser(HTMLParser):
 
     def get_control_chars(self):
         c_chars = ''
-        if self.found in ['attr_param', 'start_tag_attr', 'end_tag_attr']:
+        if self.found in ['attr_param', 'start_tag_attr', 'end_tag_attr', 'attr_equal_delim']:
             c_chars = c_chars + '>'
         elif self.found == 'attr_value':
             c_chars = c_chars + '>'
