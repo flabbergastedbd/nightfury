@@ -108,8 +108,7 @@ class CustomHTMLParser(HTMLParser):
         return(c_chars)
 
 if __name__ == '__main__':
-    sink = u'<title></alert()</title>'
-    sink = u'<table something="{"(=\'alert()"></table>'
+    sink = u'<select><option>alert()</option></select>'
     parser = CustomHTMLParser('alert()')
     parser.feed(sink)
     print(parser.get_control_chars())
