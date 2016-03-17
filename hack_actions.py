@@ -38,7 +38,7 @@ class AttrParamAction(HackAction):
     dependent_dims = {'context': 'attr_param'}
     pass
 
-ATTR_PARAMS = ('onerror', 'onload', 'src')
+ATTR_PARAMS = ('onerror', 'src')
 for i in ATTR_PARAMS:
     ACTIONS.append(AttrParamAction(i))
 
@@ -51,10 +51,21 @@ class AttrValueAction(HackAction):
     dependent_dims = {"context": "attr_value"}
     pass
 
-ATTR_VALUES = ('x', 'data:text/html,<script>var popup = 1;</script>', 'var popup = 1;')
+ATTR_VALUES = ['var popup = 1;']
 for i in ATTR_VALUES:
     ACTIONS.append(AttrValueAction(i))
 
+
+class DataAction(HackAction):
+    """
+    Action with data
+    """
+    dependent_dims = {"context": "data"}
+    pass
+
+DATA_VALUES = ['var popup = 1;']
+for i in DATA_VALUES:
+    ACTIONS.append(DataAction(i))
 
 
 class TagAction(HackAction):
@@ -66,7 +77,7 @@ class TagAction(HackAction):
 
 # TAGS = ('a', 'abbr', 'acronym', 'address', 'applet', 'embed', 'object', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'big', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'colgroup', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'ul', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'h1', 'h6', 'head', 'header', 'hr', 'html', 'i', 'iframe', 'img', 'input', 'ins', 'kbd', 'keygen', 'label', 'input', 'legend', 'fieldset', 'li', 'link', 'main', 'map', 'mark', 'menu', 'menuitem')
 # TAGS = ('a', 'embed', 'object', 'body', 'button', 'canvas', 'div', 'embed', 'figure', 'form', 'frame', 'iframe', 'img', 'input', 'title', 'option', 'select')
-TAGS = ['img']
+TAGS = ['script']
 for i in TAGS:
     ACTIONS.append(TagAction(i))
 
@@ -80,8 +91,15 @@ class ControlAction(HackAction):
 
 
 CONTROL_CHARS = [' ', '"', "'", '(', ')', '*', '+', '-', ',', ';', '<', '>', '=', '[', ']', '{', '}', '`', '/']
+CONTROL_CHARS = [' ', '"', "'", '<', '>', '/']
 for i in CONTROL_CHARS:
-    ACTIONS.append(ControlAction(i))
+    a = ControlAction(i)
+    if i == '>':
+        a.dependent_dims = {'context': 'start_tag_attr|end_tag_attr'}
+    elif i == '/':
+        a.dependent_dims = {'context': 'start_tag_name'}
+
+    ACTIONS.append(a)
 
 MASTER_COUNTER_CONTROL_CHARS = {
     "'": "'",

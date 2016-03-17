@@ -20,7 +20,7 @@ class HackDomain(Domain):
     #: Reward for each timestep
     STEP_REWARD = -1
     #: Set by the domain = min(100,rows*cols)
-    episodeCap = 5
+    episodeCap = 9
 
     def __init__(self):
         self.start = 0
@@ -49,7 +49,7 @@ class HackDomain(Domain):
             good_to_go = True
             for dim_name, dim_value in a.dependent_dims.items():
                 state_dim_value = self.datastore.get(dim_name)
-                if state_dim_value == 0 or dim_value not in state_dim_value:
+                if state_dim_value == 0 or re.search(dim_value, state_dim_value):
                     good_to_go = False
                     break
             if good_to_go:
@@ -67,7 +67,9 @@ class HackDomain(Domain):
         c_chars = list(parser.get_control_chars())
         stack = parser.get_stack()[::-1]
         attrs = parser.get_attrs()
-        self.datastore.set('context', parser.get_context())
+        context, context_helper =  parser.get_context()
+        if context: self.datastore.set('context', context)
+        if context_helper: self.datastore.set('context_helper', context_helper)
 
         if len(attrs) < 5:
             attrs += [(0, 0)] * (5 - len(attrs))
@@ -85,7 +87,7 @@ class HackDomain(Domain):
         for i, cc in zip(range(1, 3), list(c_chars)):
             self.datastore.set(str(i) + '_cc', cc)
 
-        print("Sink : %s (%s)" % (e, self.datastore.get_verbose_state()))
+        print("Sink : %s (%s)" % (e.replace(self.datastore.taint, ''), self.datastore.get_verbose_state()))
         self.datastore.set('alert', alert)
         self.datastore.save()
 
@@ -126,7 +128,7 @@ class HackDomain(Domain):
         return
 
 
-state_dict = {'alert': 0, 'context':0}
+state_dict = {'alert': 0, 'context':0, 'context_helper': 0}
 for i in range(1, 3): # cc = control character
     state_dict[str(i) + '_cc'] = 0
 for i in range(1, 3): # pd = parent div
@@ -157,10 +159,10 @@ class Datastore(object):
         self.ordered_dim_names.sort()
         # self.all_sinks = ['<script alert();//></script>', '<script something="alert();//"></script>']
         self.all_sinks = [
-            '<div>%s</div>' % (self.taint),
+            # '<div>%s</div>' % (self.taint),
+            '<div><img src=x onerror="%s"></div>' % (self.taint),
             # '<title>%s</title>' % (self.taint),
-            # '<select><option>%s</option></select>' % (self.taint),
-            # '<div %s></div>' % (self.taint),
+            #'<div %s></div>' % (self.taint),
             # '<div something="%s"></div>' % (self.taint),
             # "<div something='%s'></div>" % (self.taint),
             # '<img %s>' % (self.taint),
