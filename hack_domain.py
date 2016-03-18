@@ -46,7 +46,7 @@ class HackDomain(Domain):
 
     def possibleActions(self):
         pa = []
-        s = self.datastore.get_state()
+        s = self.datastore.get_state_dict()
         for j, a in enumerate(self.actions):
             if a.is_valid(s):
                 pa.append(j)
@@ -83,7 +83,7 @@ class HackDomain(Domain):
         for i, cc in zip(range(1, 3), list(c_chars)):
             self.datastore.set(str(i) + '_cc', cc)
 
-        print("Sink : %s (%s)" % (e, self.datastore.get_verbose_state()))
+        if alert: print("Sink : %s (%s)" % (e, self.datastore.get_verbose_state()))
         self.datastore.set('alert', alert)
         self.datastore.save()
 
@@ -160,8 +160,8 @@ class Datastore(object):
             # '<div>%s</div>' % (self.taint),
             # '<img src=x onerror="%s">' % (self.taint),
             # '<img src=x onerror=%s' % (self.taint),
-            # '<img %s' % (self.taint),
-            '<input %s' % (self.taint),
+            '<svg %s' % (self.taint),
+            # '<input %s' % (self.taint),
             # '<title>%s</title>' % (self.taint),
             #'<div %s></div>' % (self.taint),
             # '<div something="%s"></div>' % (self.taint),
@@ -239,3 +239,9 @@ class Datastore(object):
             if self.get(x):
                 s += " %s: %s " % (x, str(self.get(x)))
         return(s)
+
+    def get_state_dict(self):
+        s_dict = {}
+        for x in self.ordered_dim_names:
+            s_dict[x] = self.get(x)
+        return(s_dict)

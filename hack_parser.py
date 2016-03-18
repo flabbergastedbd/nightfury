@@ -22,7 +22,15 @@ class CustomHTMLParser(HTMLParser):
 
     def feed(self, data):
         self._sink = data
-        data = str(BeautifulSoup(data).body.contents)
+        temp_data = re.sub('[^\'"]', '', data)
+        temp_data = temp_data.replace('""', '')
+        temp_data = temp_data.replace("''", '')
+        if len(temp_data) > 0:
+            data += temp_data[::-1]
+        temp_data = re.sub('[^<>]', '', data)
+        temp_data = temp_data.replace('<>', '')
+        if temp_data == '<':
+            data += '>'
         HTMLParser.feed(self, data)
 
     def get_stack(self):
@@ -35,10 +43,10 @@ class CustomHTMLParser(HTMLParser):
                     self.found = 'start_tag_name'
                     self.trace = tag
                 elif self.taint in tag:
-                    self.found = 'delim'
+                    self.found = 'start_tag_attr'
                     self.trace = tag
                 if tag.replace(self.taint, '') in hack_actions.TAGS:
-                    self.stack.append(tag)
+                    self.stack.append(tag.replace(self.taint, ''))
 
             # New tag found, so override attributes
             self.attrs = []
@@ -47,12 +55,24 @@ class CustomHTMLParser(HTMLParser):
                     self.found = 'attr_param'
                     self.trace = param
                 elif self.taint in param:
-                    self.found ='delim'
+                    self.found ='equal_delim'
                     if param in hack_actions.ATTR_PARAMS: self.found_helper = param
                     self.trace = param
 
                 if value and self.taint in value:
-                    self.found = 'attr_value'
+                    if value.startswith(self.taint):
+                        if self._sink[self._sink.index(value) - 1] == '=':
+                            # NOTE: Temporarily disabling to avoid string mess
+                            # self.found = 'attr_value_delim'
+                            self.found = 'attr_value_start_delim'
+                        else:
+                            self.found = 'attr_value'
+                    elif self.taint in value:
+                        if self._sink[self._sink.index(value) - 1] == '=':
+                            self.found = 'attr_delim'
+                        else:
+                            self.found = 'attr_value_end_delim'
+                        self.trace = value
                     if param in hack_actions.ATTR_PARAMS: self.found_helper = param
                     self.trace = value
 
@@ -81,13 +101,19 @@ class CustomHTMLParser(HTMLParser):
 
     def get_control_chars(self):
         c_chars = ''
-        if self.found in ['attr_param', 'start_tag_attr', 'end_tag_attr', 'delim']:
+        if self.found in ['attr_param', 'start_tag_attr', 'end_tag_attr', 'equal_delim', 'attr_value_start_delim', 'attr_delim']:
             c_chars = c_chars + '>'
-        elif self.found == 'attr_value':
+        elif self.found == 'attr_value_end_delim':
             c_chars = c_chars + '>'
 
             possible_delim = self._sink[self._sink.index(self.trace) - 1]
-            if possible_delim in hack_actions.CONTROL_CHARS:
+            if possible_delim in hack_actions.MASTER_CONTROL_CHARS and possible_delim != '=':
+                c_chars = possible_delim + c_chars
+        elif self.found in ['attr_value']:
+            c_chars = c_chars + '>'
+
+            possible_delim = self._sink[self._sink.index(self.trace) - 1]
+            if possible_delim in hack_actions.MASTER_CONTROL_CHARS and possible_delim != '=':
                 c_chars = possible_delim + c_chars
 
             # Tested  on "test(')', \"'\", {'taint':1}, \"(\", '\\'')"
@@ -134,9 +160,10 @@ class CustomHTMLParser(HTMLParser):
         return(c_chars)
 
 if __name__ == '__main__':
-    sink = u"<input onerror autofocus='abcdef"
+    sink = u"<img src=popup=1;><imgabcdef"
     parser = CustomHTMLParser('abcdef')
     parser.feed(sink)
+    print(sink)
     print(parser.get_control_chars())
     print(parser.get_stack())
     print(parser.get_attrs())

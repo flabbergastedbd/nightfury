@@ -10,6 +10,7 @@ import hack_domain
 import os
 import pickle
 import signal
+import traceback
 import nf_shared
 
 def agent_pickle(r, action=0):
@@ -99,8 +100,11 @@ if __name__ == '__main__':
         experiment.save()
     except KeyboardInterrupt:
         pass
+    except Exception, e:
+        print(traceback.format_exc())
     finally:
         nf_shared.browser.service.process.send_signal(signal.SIGTERM)
         nf_shared.browser.quit()
         agent_pickle(agent, action=0)
         representation_pickle(representation, action=0)
+

@@ -55,7 +55,7 @@ class AttrParamAction(HackAction):
         return(good_to_go and super(AttrParamAction, self).is_valid(s))
 
 
-ATTR_PARAMS = ('onerror', 'src', 'onfocus', 'autofocus')
+ATTR_PARAMS = ('onerror', 'src', 'onfocus', 'autofocus', 'onload')
 for i in ATTR_PARAMS:
     ACTIONS.append(AttrParamAction(i))
 
@@ -65,18 +65,18 @@ class AttrValueAction(HackAction):
     """
     Action with attr value
     """
-    dependent_dims = {"context": "attr_value"}
+    dependent_dims = {"context": "attr_value$"}
     def is_valid(self, s):
         good_to_go = True
-        if s['context_helper'] in ATTR_PARAMS:
+        if s['context_helper'] in ATTR_PARAMS: # If one attr value is already present then no other ATTR value is needed
             for fname, fvalue in s.items():
-                if fvalue == s['context_helper']:
-                    if s[fname.replace('p', 'v')]:
+                if fname != 'context_helper' and fvalue == s['context_helper']:
+                    if not s[fname.replace('p', 'v')]:
                         good_to_go = True
                     else:
                         good_to_go = False
                     break
-        return(good_to_go and super(AttrParamAction, self).is_valid(s))
+        return(good_to_go and super(AttrValueAction, self).is_valid(s))
 
 ATTR_VALUES = ['x', 'popup=1;']
 for i in ATTR_VALUES:
@@ -90,7 +90,8 @@ class DataAction(HackAction):
     dependent_dims = {"context": "data"}
     pass
 
-DATA_VALUES = ['popup=1;']
+# DATA_VALUES = ['popup=1;']
+DATA_VALUES = []
 for i in DATA_VALUES:
     ACTIONS.append(DataAction(i))
 
@@ -104,10 +105,29 @@ class TagAction(HackAction):
 
 # TAGS = ('a', 'abbr', 'acronym', 'address', 'applet', 'embed', 'object', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'big', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'colgroup', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'ul', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'h1', 'h6', 'head', 'header', 'hr', 'html', 'i', 'iframe', 'img', 'input', 'ins', 'kbd', 'keygen', 'label', 'input', 'legend', 'fieldset', 'li', 'link', 'main', 'map', 'mark', 'menu', 'menuitem')
 # TAGS = ('a', 'embed', 'object', 'body', 'button', 'canvas', 'div', 'embed', 'figure', 'form', 'frame', 'iframe', 'img', 'input', 'title', 'option', 'select')
-TAGS = ['input']
+TAGS = ['svg']
 for i in TAGS:
     ACTIONS.append(TagAction(i))
 
+
+class MasterControlAction(HackAction):
+    """
+    Action representing a control character
+    """
+    def is_valid(self, s):
+        if s['context'] == 'attr_value_start_delim' or (s['context'] == 'attr_value_end_delim' and s['1_cc'] == self.string):
+            return True
+        return False
+
+MASTER_CONTROL_CHARS = ['"', "'"]
+for i in MASTER_CONTROL_CHARS:
+    a = MasterControlAction(i)
+    ACTIONS.append(a)
+
+MASTER_COUNTER_CONTROL_CHARS = {
+    "'": "'",
+    '"': '"',
+}
 
 
 class ControlAction(HackAction):
@@ -116,28 +136,24 @@ class ControlAction(HackAction):
     """
     pass
 
-
-CONTROL_CHARS = [' ', '"', "'", '(', ')', '*', '+', '-', ',', ';', '<', '>', '=', '[', ']', '{', '}', '`', '/']
-CONTROL_CHARS = [' ', '"', "'", '<', '>', '/', '=']
+CONTROL_CHARS = [' ', '(', ')', '*', '+', '-', ',', ';', '<', '>', '=', '[', ']', '{', '}', '`', '/']
+CONTROL_CHARS = [' ', '<', '>', '/', '=']
+CONTROL_CHARS = [' ', '<', '>', '/', '=']
 for i in CONTROL_CHARS:
     a = ControlAction(i)
     if i == '>':
-        a.dependent_dims = {'context': 'start_tag_attr|end_tag_attr|attr_param|delim'}
+        a.dependent_dims = {'context': 'start_tag_attr|end_tag_attr|attr_param|equal_dim|attr_delim'}
     if i == '<':
         a.dependent_dims = {'context': 'data'}
-    elif i == '/':
-        a.dependent_dims = {'context': 'start_tag_name|delim'}
+    elif i in [' ']:
+        a.dependent_dims = {'context': 'attr_delim|attr_value_end_delim'}
+    elif i in ['/']:
+        a.dependent_dims = {'context': 'start_tag_attr|end_tag_name'}
     elif i == '=':
-        a.dependent_dims = {'context': 'delim'}
-    elif i in ["'", '"', ' ']:
-        a.dependent_dims = {'context': 'delim|attr_value'}
-
+        a.dependent_dims = {'context': 'equal_delim'}
+    elif i == '':
+        a.dependent_dims = {'context': 'attr_value_start_delim'}
     ACTIONS.append(a)
-
-MASTER_COUNTER_CONTROL_CHARS = {
-    "'": "'",
-    '"': '"',
-}
 
 COUNTER_CONTROL_CHARS = {
     '(': ')',
