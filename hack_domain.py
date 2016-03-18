@@ -46,14 +46,9 @@ class HackDomain(Domain):
 
     def possibleActions(self):
         pa = []
+        s = self.datastore.get_state()
         for j, a in enumerate(self.actions):
-            good_to_go = True
-            for dim_name, dim_value in a.dependent_dims.items():
-                state_dim_value = self.datastore.get(dim_name)
-                if state_dim_value == 0 or not re.search(dim_value, state_dim_value):
-                    good_to_go = False
-                    break
-            if good_to_go:
+            if a.is_valid(s):
                 pa.append(j)
         return(pa)
 
@@ -69,8 +64,8 @@ class HackDomain(Domain):
         stack = parser.get_stack()[::-1]
         attrs = parser.get_attrs()
         context, context_helper =  parser.get_context()
-        if context: self.datastore.set('context', context)
-        if context_helper: self.datastore.set('context_helper', context_helper)
+        self.datastore.set('context', context)
+        self.datastore.set('context_helper', context_helper)
 
         if len(attrs) < 5:
             attrs += [(0, 0)] * (5 - len(attrs))
@@ -99,8 +94,8 @@ class HackDomain(Domain):
         self._payloads_environment.append(s)
 
         # nf_shared.browser.get("data:text/html," + self._sink_environment.replace(self.datastore.taint, '<script>var popup = true;</script>'))
-        nf_shared.browser.get("data:text/html,<script>var popup;</script>" + self._sink_environment.replace(self.datastore.taint, ''))
         try:
+            nf_shared.browser.get("data:text/html,<script>var popup;</script>" + self._sink_environment.replace(self.datastore.taint, ''))
             r = nf_shared.browser.execute_script('return popup;');
             alert = True if r == 1 else False
         except WebDriverException:
@@ -159,11 +154,14 @@ class Datastore(object):
         self.ordered_dim_names = state_dict.keys()
         self.ordered_dim_names.sort()
         # self.all_sinks = ['<script alert();//></script>', '<script something="alert();//"></script>']
+        # NOTE: When you change this, please do corresponding changes in hack_actions.TAGS
+        # Make sure you do it or else you are done for good
         self.all_sinks = [
             # '<div>%s</div>' % (self.taint),
             # '<img src=x onerror="%s">' % (self.taint),
             # '<img src=x onerror=%s' % (self.taint),
-            '<img %s' % (self.taint),
+            # '<img %s' % (self.taint),
+            '<input %s' % (self.taint),
             # '<title>%s</title>' % (self.taint),
             #'<div %s></div>' % (self.taint),
             # '<div something="%s"></div>' % (self.taint),

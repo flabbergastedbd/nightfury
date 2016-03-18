@@ -20,6 +20,15 @@ class HackAction(object):
         m.update(s)
         return(m.hexdigest())
 
+    def is_valid(self, s):
+        good_to_go = True
+        for dim_name, required_dim_value in self.dependent_dims.items():
+            state_dim_value = s[dim_name]
+            if state_dim_value == 0 or not re.search(required_dim_value, state_dim_value):
+                good_to_go = False
+                break
+        return good_to_go
+
     def run(self, payload_list):
         return(self.string)
 
@@ -36,9 +45,17 @@ class AttrParamAction(HackAction):
     Action representing a event handler
     """
     dependent_dims = {'context': 'attr_param'}
-    pass
 
-ATTR_PARAMS = ('onerror', 'src')
+    def is_valid(self, s):
+        good_to_go = True
+        for feature_name, feature_value in s.items():
+            if feature_name.endswith("_ap") and feature_value == self.string:
+                good_to_go = False
+                break
+        return(good_to_go and super(AttrParamAction, self).is_valid(s))
+
+
+ATTR_PARAMS = ('onerror', 'src', 'onfocus', 'autofocus')
 for i in ATTR_PARAMS:
     ACTIONS.append(AttrParamAction(i))
 
@@ -49,7 +66,17 @@ class AttrValueAction(HackAction):
     Action with attr value
     """
     dependent_dims = {"context": "attr_value"}
-    pass
+    def is_valid(self, s):
+        good_to_go = True
+        if s['context_helper'] in ATTR_PARAMS:
+            for fname, fvalue in s.items():
+                if fvalue == s['context_helper']:
+                    if s[fname.replace('p', 'v')]:
+                        good_to_go = True
+                    else:
+                        good_to_go = False
+                    break
+        return(good_to_go and super(AttrParamAction, self).is_valid(s))
 
 ATTR_VALUES = ['x', 'popup=1;']
 for i in ATTR_VALUES:
@@ -77,7 +104,7 @@ class TagAction(HackAction):
 
 # TAGS = ('a', 'abbr', 'acronym', 'address', 'applet', 'embed', 'object', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'big', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'colgroup', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'ul', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'h1', 'h6', 'head', 'header', 'hr', 'html', 'i', 'iframe', 'img', 'input', 'ins', 'kbd', 'keygen', 'label', 'input', 'legend', 'fieldset', 'li', 'link', 'main', 'map', 'mark', 'menu', 'menuitem')
 # TAGS = ('a', 'embed', 'object', 'body', 'button', 'canvas', 'div', 'embed', 'figure', 'form', 'frame', 'iframe', 'img', 'input', 'title', 'option', 'select')
-TAGS = ['img']
+TAGS = ['input']
 for i in TAGS:
     ACTIONS.append(TagAction(i))
 

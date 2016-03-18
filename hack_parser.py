@@ -2,6 +2,7 @@ import re
 import hack_actions
 
 from HTMLParser import HTMLParser
+from bs4 import BeautifulSoup
 
 class CustomHTMLParser(HTMLParser):
     def __init__(self, taint):
@@ -14,17 +15,14 @@ class CustomHTMLParser(HTMLParser):
         HTMLParser.__init__(self)
 
     def get_context(self):
-        return(self.found, self.found_helper)
+        return(self.found or 0, self.found_helper or 0)
 
     def get_attrs(self):
         return(self.attrs)
 
     def feed(self, data):
         self._sink = data
-        temp_data = re.sub('[^<>]', '', data)
-        temp_data = re.sub('<>', '', temp_data)
-        if temp_data == '<':
-            data += '>'
+        data = str(BeautifulSoup(data).body.contents)
         HTMLParser.feed(self, data)
 
     def get_stack(self):
@@ -136,7 +134,7 @@ class CustomHTMLParser(HTMLParser):
         return(c_chars)
 
 if __name__ == '__main__':
-    sink = u'<img src=x onerror="abcdef"'
+    sink = u"<input onerror autofocus='abcdef"
     parser = CustomHTMLParser('abcdef')
     parser.feed(sink)
     print(parser.get_control_chars())
