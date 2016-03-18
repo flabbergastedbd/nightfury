@@ -63,7 +63,7 @@ class CustomHTMLParser(HTMLParser):
                     if value.startswith(self.taint):
                         if self._sink[self._sink.index(value) - 1] == '=':
                             # NOTE: Temporarily disabling to avoid string mess
-                            # self.found = 'attr_value_delim'
+                            # self.found = 'attr_value'
                             self.found = 'attr_value_start_delim'
                         else:
                             self.found = 'attr_value'
@@ -160,7 +160,7 @@ class CustomHTMLParser(HTMLParser):
         return(c_chars)
 
 if __name__ == '__main__':
-    sink = u"<img src=popup=1;><imgabcdef"
+    sink = u"<div><body><body><script>abcdef</div>"
     parser = CustomHTMLParser('abcdef')
     parser.feed(sink)
     print(sink)

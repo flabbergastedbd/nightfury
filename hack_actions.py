@@ -55,7 +55,7 @@ class AttrParamAction(HackAction):
         return(good_to_go and super(AttrParamAction, self).is_valid(s))
 
 
-ATTR_PARAMS = ('onerror', 'src', 'onfocus', 'autofocus', 'onload')
+ATTR_PARAMS = ('onblur', 'onerror', 'src', 'autofocus', 'onload')
 for i in ATTR_PARAMS:
     ACTIONS.append(AttrParamAction(i))
 
@@ -65,7 +65,7 @@ class AttrValueAction(HackAction):
     """
     Action with attr value
     """
-    dependent_dims = {"context": "attr_value$"}
+    dependent_dims = {"context": "attr_value_start_delim|attr_value$"}  # Either without delim or with delim
     def is_valid(self, s):
         good_to_go = True
         if s['context_helper'] in ATTR_PARAMS: # If one attr value is already present then no other ATTR value is needed
@@ -105,7 +105,7 @@ class TagAction(HackAction):
 
 # TAGS = ('a', 'abbr', 'acronym', 'address', 'applet', 'embed', 'object', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'big', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'colgroup', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'ul', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'h1', 'h6', 'head', 'header', 'hr', 'html', 'i', 'iframe', 'img', 'input', 'ins', 'kbd', 'keygen', 'label', 'input', 'legend', 'fieldset', 'li', 'link', 'main', 'map', 'mark', 'menu', 'menuitem')
 # TAGS = ('a', 'embed', 'object', 'body', 'button', 'canvas', 'div', 'embed', 'figure', 'form', 'frame', 'iframe', 'img', 'input', 'title', 'option', 'select')
-TAGS = ['svg']
+TAGS = ['img', 'title', 'audio', 'video', 'body', 'object', 'script']
 for i in TAGS:
     ACTIONS.append(TagAction(i))
 
@@ -120,6 +120,7 @@ class MasterControlAction(HackAction):
         return False
 
 MASTER_CONTROL_CHARS = ['"', "'"]
+# MASTER_CONTROL_CHARS = []
 for i in MASTER_CONTROL_CHARS:
     a = MasterControlAction(i)
     ACTIONS.append(a)
@@ -148,11 +149,9 @@ for i in CONTROL_CHARS:
     elif i in [' ']:
         a.dependent_dims = {'context': 'attr_delim|attr_value_end_delim'}
     elif i in ['/']:
-        a.dependent_dims = {'context': 'start_tag_attr|end_tag_name'}
+        a.dependent_dims = {'context': 'start_tag_attr|start_tag_name'}
     elif i == '=':
         a.dependent_dims = {'context': 'equal_delim'}
-    elif i == '':
-        a.dependent_dims = {'context': 'attr_value_start_delim'}
     ACTIONS.append(a)
 
 COUNTER_CONTROL_CHARS = {

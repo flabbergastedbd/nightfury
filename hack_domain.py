@@ -20,7 +20,7 @@ class HackDomain(Domain):
     #: Reward for each timestep
     STEP_REWARD = -1
     #: Set by the domain = min(100,rows*cols)
-    episodeCap = 9
+    episodeCap = 15
 
     def __init__(self):
         self.start = 0
@@ -157,22 +157,14 @@ class Datastore(object):
         # NOTE: When you change this, please do corresponding changes in hack_actions.TAGS
         # Make sure you do it or else you are done for good
         self.all_sinks = [
-            # '<div>%s</div>' % (self.taint),
-            # '<img src=x onerror="%s">' % (self.taint),
-            # '<img src=x onerror=%s' % (self.taint),
-            '<svg %s' % (self.taint),
-            # '<input %s' % (self.taint),
-            # '<title>%s</title>' % (self.taint),
-            #'<div %s></div>' % (self.taint),
+            '<div>%s</div>' % (self.taint),
+            '<img src=x onerror="%s">' % (self.taint),
+            '<img src=x onerror=%s' % (self.taint),
+            '<img %s' % (self.taint),
+            '<title>%s</title>' % (self.taint),
+            # '<div %s></div>' % (self.taint),
             # '<div something="%s"></div>' % (self.taint),
             # "<div something='%s'></div>" % (self.taint),
-            # '<img %s>' % (self.taint),
-            # '<img something="%s">' % (self.taint),
-            # "<img something='%s'>" % (self.taint),
-            # '<table %s></table>' % (self.taint),
-            # '<table something="%s"></table>' % (self.taint),
-            # "<table something='%s'></table>" % (self.taint),
-            # '<button %s></button>' % (self.taint),
             # '<button something="%s"></button>' % (self.taint),
             # "<button something='%s'></button>" % (self.taint),
         ]
