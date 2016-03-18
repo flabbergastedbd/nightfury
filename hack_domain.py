@@ -41,6 +41,7 @@ class HackDomain(Domain):
         state = self.datastore.get_state(new=True)
         self._sink_environment = self.datastore.current_sink
         self._payloads_environment = []
+        self._update_state(alert=False)
         return(state, self.isTerminal(), self.possibleActions())
 
     def possibleActions(self):
@@ -49,7 +50,7 @@ class HackDomain(Domain):
             good_to_go = True
             for dim_name, dim_value in a.dependent_dims.items():
                 state_dim_value = self.datastore.get(dim_name)
-                if state_dim_value == 0 or re.search(dim_value, state_dim_value):
+                if state_dim_value == 0 or not re.search(dim_value, state_dim_value):
                     good_to_go = False
                     break
             if good_to_go:
@@ -87,7 +88,7 @@ class HackDomain(Domain):
         for i, cc in zip(range(1, 3), list(c_chars)):
             self.datastore.set(str(i) + '_cc', cc)
 
-        print("Sink : %s (%s)" % (e.replace(self.datastore.taint, ''), self.datastore.get_verbose_state()))
+        print("Sink : %s (%s)" % (e, self.datastore.get_verbose_state()))
         self.datastore.set('alert', alert)
         self.datastore.save()
 
@@ -98,10 +99,10 @@ class HackDomain(Domain):
         self._payloads_environment.append(s)
 
         # nf_shared.browser.get("data:text/html," + self._sink_environment.replace(self.datastore.taint, '<script>var popup = true;</script>'))
-        nf_shared.browser.get("data:text/html," + self._sink_environment.replace(self.datastore.taint, ''))
+        nf_shared.browser.get("data:text/html,<script>var popup;</script>" + self._sink_environment.replace(self.datastore.taint, ''))
         try:
-            nf_shared.browser.execute_script('return popup;');
-            alert = True
+            r = nf_shared.browser.execute_script('return popup;');
+            alert = True if r == 1 else False
         except WebDriverException:
             alert = False
         self._update_state(alert=alert)
@@ -160,7 +161,9 @@ class Datastore(object):
         # self.all_sinks = ['<script alert();//></script>', '<script something="alert();//"></script>']
         self.all_sinks = [
             # '<div>%s</div>' % (self.taint),
-            '<div><img src=x onerror="%s"></div>' % (self.taint),
+            # '<img src=x onerror="%s">' % (self.taint),
+            # '<img src=x onerror=%s' % (self.taint),
+            '<img %s' % (self.taint),
             # '<title>%s</title>' % (self.taint),
             #'<div %s></div>' % (self.taint),
             # '<div something="%s"></div>' % (self.taint),

@@ -21,6 +21,10 @@ class CustomHTMLParser(HTMLParser):
 
     def feed(self, data):
         self._sink = data
+        temp_data = re.sub('[^<>]', '', data)
+        temp_data = re.sub('<>', '', temp_data)
+        if temp_data == '<':
+            data += '>'
         HTMLParser.feed(self, data)
 
     def get_stack(self):
@@ -33,7 +37,7 @@ class CustomHTMLParser(HTMLParser):
                     self.found = 'start_tag_name'
                     self.trace = tag
                 elif self.taint in tag:
-                    self.found = 'start_tag_attr'
+                    self.found = 'delim'
                     self.trace = tag
                 if tag.replace(self.taint, '') in hack_actions.TAGS:
                     self.stack.append(tag)
@@ -41,19 +45,11 @@ class CustomHTMLParser(HTMLParser):
             # New tag found, so override attributes
             self.attrs = []
             for param, value in attrs:
-                param = param.replace(self.taint, '')
-                value = value.replace(self.taint, '') if value else value
-                if param in hack_actions.ATTR_PARAMS and param not in [i[0] for i in self.attrs]:
-                    v = None
-                    if value and value in hack_actions.ATTR_VALUES:
-                        v = v
-                    self.attrs.append((param, v))
-
                 if param.startswith(self.taint):
                     self.found = 'attr_param'
                     self.trace = param
                 elif self.taint in param:
-                    self.found ='attr_equal_delim'
+                    self.found ='delim'
                     if param in hack_actions.ATTR_PARAMS: self.found_helper = param
                     self.trace = param
 
@@ -61,6 +57,14 @@ class CustomHTMLParser(HTMLParser):
                     self.found = 'attr_value'
                     if param in hack_actions.ATTR_PARAMS: self.found_helper = param
                     self.trace = value
+
+                param = param.replace(self.taint, '')
+                value = value.replace(self.taint, '') if value else value
+                if param in hack_actions.ATTR_PARAMS and param not in [i[0] for i in self.attrs]:
+                    if value and value in hack_actions.ATTR_VALUES:
+                        self.attrs.append([param, value])
+                    else:
+                        self.attrs.append([param, None])
 
     def handle_endtag(self, tag):
         if not self.found:
@@ -79,12 +83,14 @@ class CustomHTMLParser(HTMLParser):
 
     def get_control_chars(self):
         c_chars = ''
-        if self.found in ['attr_param', 'start_tag_attr', 'end_tag_attr', 'attr_equal_delim']:
+        if self.found in ['attr_param', 'start_tag_attr', 'end_tag_attr', 'delim']:
             c_chars = c_chars + '>'
         elif self.found == 'attr_value':
             c_chars = c_chars + '>'
 
-            c_chars = self._sink[self._sink.index(self.trace) - 1] + c_chars
+            possible_delim = self._sink[self._sink.index(self.trace) - 1]
+            if possible_delim in hack_actions.CONTROL_CHARS:
+                c_chars = possible_delim + c_chars
 
             # Tested  on "test(')', \"'\", {'taint':1}, \"(\", '\\'')"
             # Following four loops will remove all the arguments except the ones with the trace
@@ -130,8 +136,10 @@ class CustomHTMLParser(HTMLParser):
         return(c_chars)
 
 if __name__ == '__main__':
-    sink = u'<select><option>alert()</option></select>'
-    parser = CustomHTMLParser('alert()')
+    sink = u'<img src=x onerror="abcdef"'
+    parser = CustomHTMLParser('abcdef')
     parser.feed(sink)
     print(parser.get_control_chars())
     print(parser.get_stack())
+    print(parser.get_attrs())
+    print(parser.get_context())

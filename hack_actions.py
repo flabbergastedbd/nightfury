@@ -51,7 +51,7 @@ class AttrValueAction(HackAction):
     dependent_dims = {"context": "attr_value"}
     pass
 
-ATTR_VALUES = ['var popup = 1;']
+ATTR_VALUES = ['x', 'popup=1;']
 for i in ATTR_VALUES:
     ACTIONS.append(AttrValueAction(i))
 
@@ -63,7 +63,7 @@ class DataAction(HackAction):
     dependent_dims = {"context": "data"}
     pass
 
-DATA_VALUES = ['var popup = 1;']
+DATA_VALUES = ['popup=1;']
 for i in DATA_VALUES:
     ACTIONS.append(DataAction(i))
 
@@ -77,7 +77,7 @@ class TagAction(HackAction):
 
 # TAGS = ('a', 'abbr', 'acronym', 'address', 'applet', 'embed', 'object', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'big', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'colgroup', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'ul', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'h1', 'h6', 'head', 'header', 'hr', 'html', 'i', 'iframe', 'img', 'input', 'ins', 'kbd', 'keygen', 'label', 'input', 'legend', 'fieldset', 'li', 'link', 'main', 'map', 'mark', 'menu', 'menuitem')
 # TAGS = ('a', 'embed', 'object', 'body', 'button', 'canvas', 'div', 'embed', 'figure', 'form', 'frame', 'iframe', 'img', 'input', 'title', 'option', 'select')
-TAGS = ['script']
+TAGS = ['img']
 for i in TAGS:
     ACTIONS.append(TagAction(i))
 
@@ -91,13 +91,19 @@ class ControlAction(HackAction):
 
 
 CONTROL_CHARS = [' ', '"', "'", '(', ')', '*', '+', '-', ',', ';', '<', '>', '=', '[', ']', '{', '}', '`', '/']
-CONTROL_CHARS = [' ', '"', "'", '<', '>', '/']
+CONTROL_CHARS = [' ', '"', "'", '<', '>', '/', '=']
 for i in CONTROL_CHARS:
     a = ControlAction(i)
     if i == '>':
-        a.dependent_dims = {'context': 'start_tag_attr|end_tag_attr'}
+        a.dependent_dims = {'context': 'start_tag_attr|end_tag_attr|attr_param|delim'}
+    if i == '<':
+        a.dependent_dims = {'context': 'data'}
     elif i == '/':
-        a.dependent_dims = {'context': 'start_tag_name'}
+        a.dependent_dims = {'context': 'start_tag_name|delim'}
+    elif i == '=':
+        a.dependent_dims = {'context': 'delim'}
+    elif i in ["'", '"', ' ']:
+        a.dependent_dims = {'context': 'delim|attr_value'}
 
     ACTIONS.append(a)
 
