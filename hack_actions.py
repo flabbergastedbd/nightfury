@@ -71,7 +71,7 @@ class AttrValueAction(HackAction):
         if s['context_helper'] in ATTR_PARAMS: # If one attr value is already present then no other ATTR value is needed
             for fname, fvalue in s.items():
                 if fname != 'context_helper' and fvalue == s['context_helper']:
-                    if not s[fname.replace('p', 'v')]:
+                    if not s[fname.replace('ap', 'av')]:
                         good_to_go = True
                     else:
                         good_to_go = False
@@ -101,15 +101,22 @@ class TagAction(HackAction):
     Action representing a HTML tag
     """
     dependent_dims = {'context': 'tag_name'}
-    pass
+
+    def is_valid(self, s):  # To support closing tag only when there is an open tag with same name
+        good_to_go = True
+        if s['context'] == 'end_tag_name':
+            good_to_go = False
+            for fname, fvalue in s.items():
+                if fvalue == self.string and fname.endswith("_pd"):
+                    good_to_go = True
+                    break
+        return(good_to_go and super(TagAction, self).is_valid(s))
 
 # TAGS = ('a', 'abbr', 'acronym', 'address', 'applet', 'embed', 'object', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'big', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'colgroup', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'ul', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'h1', 'h6', 'head', 'header', 'hr', 'html', 'i', 'iframe', 'img', 'input', 'ins', 'kbd', 'keygen', 'label', 'input', 'legend', 'fieldset', 'li', 'link', 'main', 'map', 'mark', 'menu', 'menuitem')
-TAGS = ('embed', 'object', 'body', 'canvas', 'div', 'embed', 'form', 'frame', 'iframe', 'img', 'input', 'option', 'select')
+TAGS = ('title', 'embed', 'object', 'body', 'canvas', 'div', 'embed', 'form', 'frame', 'iframe', 'img', 'input', 'option', 'select', 'audio', 'video')
 # TAGS = ['img', 'title', 'audio', 'video', 'body', 'object']
 for i in TAGS:
     a = TagAction(i)
-    if i in ['title']:
-        a.dependent_dims = {'context': 'chachina_radu'}
     ACTIONS.append(a)
 
 
@@ -140,6 +147,18 @@ class ControlAction(HackAction):
     """
     pass
 
+class ForwardSlashControlAction(ControlAction):
+    """
+    Action representing a control character
+    """
+    def is_valid(self, s):
+        good_to_go = True
+        # Check if there atleast one tag to be closed because '/' after a < will start a close tag state
+        if s['context'] == 'start_tag_name' and s['1_pd'] == 0:
+            good_to_go = False
+        return(good_to_go and super(ForwardSlashControlAction, self).is_valid(s))
+
+
 CONTROL_CHARS = [' ', '(', ')', '*', '+', '-', ',', ';', '<', '>', '=', '[', ']', '{', '}', '`', '/']
 CONTROL_CHARS = [' ', '<', '>', '/', '=']
 CONTROL_CHARS = [' ', '<', '>', '/', '=']
@@ -152,6 +171,7 @@ for i in CONTROL_CHARS:
     elif i in [' ']:
         a.dependent_dims = {'context': 'attr_delim|attr_value_end_delim'}
     elif i in ['/']:
+        a = ForwardSlashControlAction(i)
         a.dependent_dims = {'context': 'start_tag_attr|start_tag_name'}
     elif i == '=':
         a.dependent_dims = {'context': 'equal_delim'}

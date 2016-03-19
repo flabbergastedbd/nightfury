@@ -7,18 +7,15 @@ from bs4 import BeautifulSoup
 class CustomHTMLParser(HTMLParser):
     def __init__(self, taint):
         self.stack = []
+        self.startendstack = []
         self.found = None
         self.found_helper = None
-        self.attrs = []
         self.taint = taint
         self.trace = ''
         HTMLParser.__init__(self)
 
     def get_context(self):
         return(self.found or 0, self.found_helper or 0)
-
-    def get_attrs(self):
-        return(self.attrs)
 
     def feed(self, data):
         self._sink = data
@@ -36,8 +33,15 @@ class CustomHTMLParser(HTMLParser):
     def get_stack(self):
         return(self.stack)
 
-    def handle_starttag(self, tag, attrs):
+    def get_startendstack(self):
+        return(self.startendstack)
+
+    def handle_startendtag(self, tag, attrs):
+        self.handle_starttag(tag, attrs, end=True)
+
+    def handle_starttag(self, tag, attrs, end=False):
         if not self.found:
+            temp_tag = None
             if tag.startswith(self.taint):
                 self.found = 'start_tag_name'
                 self.trace = tag
@@ -45,10 +49,10 @@ class CustomHTMLParser(HTMLParser):
                 self.found = 'start_tag_attr'
                 self.trace = tag
             if tag.replace(self.taint, '') in hack_actions.TAGS:
-                self.stack.append(tag.replace(self.taint, ''))
+                temp_tag = tag.replace(self.taint, '')
 
             # New tag found, so override attributes
-            self.attrs = []
+            temp_attrs = []
             for param, value in attrs:
                 if param.startswith(self.taint):
                     self.found = 'attr_param'
@@ -77,11 +81,15 @@ class CustomHTMLParser(HTMLParser):
 
                 param = param.replace(self.taint, '')
                 value = value.replace(self.taint, '') if value else value
-                if param in hack_actions.ATTR_PARAMS and param not in [i[0] for i in self.attrs]:
+                if param in hack_actions.ATTR_PARAMS and param not in [i[0] for i in temp_attrs]:  # Only once can a param occur
                     if value and value in hack_actions.ATTR_VALUES:
-                        self.attrs.append([param, value])
+                        temp_attrs.append([param, value])
                     else:
-                        self.attrs.append([param, None])
+                        temp_attrs.append([param, None])
+            if end == False:
+                if temp_tag: self.stack.append([temp_tag, temp_attrs])
+            elif end == True:
+                if temp_tag: self.startendstack.append([temp_tag, temp_attrs])
 
     def handle_endtag(self, tag):
         if not self.found:
@@ -89,7 +97,7 @@ class CustomHTMLParser(HTMLParser):
                 self.found = 'end_tag_name'
             elif self.taint in tag:
                 self.found = 'end_tag_attr'
-            if len(self.stack) > 0 and self.stack[-1] == tag:
+            if len(self.stack) > 0 and self.stack[-1][0] == tag:
                 self.stack.pop()
 
     def handle_data(self, data):
@@ -165,5 +173,5 @@ if __name__ == '__main__':
     print(sink)
     print(parser.get_control_chars())
     print(parser.get_stack())
-    print(parser.get_attrs())
+    print(parser.get_startendstack())
     print(parser.get_context())

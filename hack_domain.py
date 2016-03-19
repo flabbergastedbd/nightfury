@@ -69,21 +69,32 @@ class HackDomain(Domain):
         parser.feed(e)
         c_chars = list(parser.get_control_chars())
         stack = parser.get_stack()[::-1]
-        attrs = parser.get_attrs()
+        startendstack = parser.get_startendstack()[::-1]
         context, context_helper =  parser.get_context()
         self.datastore.set('context', context)
         self.datastore.set('context_helper', context_helper)
 
-        if len(attrs) < 5:
-            attrs += [(0, 0)] * (5 - len(attrs))
-        for i, attr_pair in zip(range(1, 6), attrs):
-            self.datastore.set(str(i) + '_ap', attr_pair[0])
-            self.datastore.set(str(i) + '_av', attr_pair[1])
-
         if len(stack) < 2:
-            stack += [0] * (2 - len(stack))
-        for i, div in zip(range(1, 3), stack):
+            stack += [[0, []]] * (2 - len(stack))
+        for i, div_details in zip(range(1, 3), stack):
+            div, attrs = div_details
             self.datastore.set(str(i) + '_pd', div)
+            if len(attrs) < 5:
+                attrs += [(0, 0)] * (5 - len(attrs))
+            for j, attr_pair in zip(range(1, 6), attrs):
+                self.datastore.set(str(i) + '_pd_' + str(j) + '_ap', attr_pair[0])
+                self.datastore.set(str(i) + '_pd_' + str(j) + '_av', attr_pair[1])
+
+        if len(startendstack) < 2:
+            startendstack += [[0, []]] * (2 - len(startendstack))
+        for i, div_details in zip(range(1, 3), startendstack):
+            div, attrs = div_details
+            self.datastore.set(str(i) + '_d', div)
+            if len(attrs) < 5:
+                attrs += [(0, 0)] * (5 - len(attrs))
+            for j, attr_pair in zip(range(1, 6), attrs):
+                self.datastore.set(str(i) + '_d_' + str(j) + '_ap', attr_pair[0])
+                self.datastore.set(str(i) + '_d_' + str(j) + '_av', attr_pair[1])
 
         if len(c_chars) < 2:
             c_chars += [0] * (2 - len(c_chars))
@@ -113,14 +124,21 @@ class HackDomain(Domain):
         partial_payload = self.actions[a].run(self._payloads_environment)
         self._inject_into_environment(partial_payload)
 
+        actions = self.possibleActions()
+        terminal = self.isTerminal()
         success, failure = self._is_terminal_list()
         if success:
             r = self.GOAL_REWARD
-        elif failure:
+        elif failure or len(actions) == 0:
             r = self.FAIL_REWARD
+            terminal = True
+            if len(actions) == 0:
+                print("Terminal due to lack of action")
+                print(self.datastore.get_verbose_state())
+                print(self._sink_environment)
         else:
             r = self.STEP_REWARD
-        return(r, self.datastore.get_state(), self.isTerminal(), self.possibleActions())
+        return(r, self.datastore.get_state(), terminal, actions)
 
     def showLearning(self, representation):
         pass
@@ -141,10 +159,14 @@ for i in range(1, 3): # cc = control character
     state_dict[str(i) + '_cc'] = 0
 for i in range(1, 3): # pd = parent div
     state_dict[str(i) + '_pd'] = 0
-for i in range(1, 6): # ap = attribute parameter
-    state_dict[str(i) + '_ap'] = 0
-for i in range(1, 6): # av = attribute value
-    state_dict[str(i) + '_av'] = 0
+    for j in range(1, 6): # ap = attribute parameter
+        state_dict[str(i) + '_pd_' + str(j) + '_ap'] = 0
+        state_dict[str(i) + '_pd_' + str(j) + '_av'] = 0
+for i in range(1, 3): # d = div (start end div)
+    state_dict[str(i) + '_d'] = 0
+    for j in range(1, 6): # ap = attribute parameter
+        state_dict[str(i) + '_d_' + str(j) + '_ap'] = 0
+        state_dict[str(i) + '_d_' + str(j) + '_av'] = 0
 """
 for t in hack_actions.TAGS:  # Used to give relative numbering using xpath
     state_dict[t] = 0
@@ -169,7 +191,9 @@ class Datastore(object):
         # NOTE: When you change this, please do corresponding changes in hack_actions.TAGS
         # Make sure you do it or else you are done for good
         self.all_sinks = [
-            '%s' % (self.taint),
+            '<title>%s' % (self.taint),
+            # '%s' % (self.taint),
+            # '<div src=x><img src=x onerror=%s' % (self.taint),
             # '<body %s' % (self.taint),
             # '<img %s' % (self.taint),
             # '<audio %s' % (self.taint),

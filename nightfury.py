@@ -91,8 +91,8 @@ def make_experiment(exp_id=1, path="./results/ITab"):
 
 if __name__ == '__main__':
     try:
-        nf_shared.browser = webdriver.PhantomJS()
-        # nf_shared.browser = webdriver.Chrome()
+        # nf_shared.browser = webdriver.PhantomJS()
+        nf_shared.browser = webdriver.Chrome()
         experiment = make_experiment(exp_id=1)
         experiment.run(visualize_steps=True,  # should each learning step be shown?
                        visualize_learning=True,  # show policy / value function?
@@ -104,7 +104,7 @@ if __name__ == '__main__':
     except Exception, e:
         print(traceback.format_exc())
     finally:
-        nf_shared.browser.service.process.send_signal(signal.SIGTERM)
+        # nf_shared.browser.service.process.send_signal(signal.SIGTERM)
         nf_shared.browser.quit()
         agent_pickle(agent, action=0)
         representation_pickle(representation, action=0)
