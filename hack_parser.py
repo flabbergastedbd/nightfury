@@ -38,15 +38,14 @@ class CustomHTMLParser(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         if not self.found:
-            if tag != 'div':
-                if tag.startswith(self.taint):
-                    self.found = 'start_tag_name'
-                    self.trace = tag
-                elif self.taint in tag:
-                    self.found = 'start_tag_attr'
-                    self.trace = tag
-                if tag.replace(self.taint, '') in hack_actions.TAGS:
-                    self.stack.append(tag.replace(self.taint, ''))
+            if tag.startswith(self.taint):
+                self.found = 'start_tag_name'
+                self.trace = tag
+            elif self.taint in tag:
+                self.found = 'start_tag_attr'
+                self.trace = tag
+            if tag.replace(self.taint, '') in hack_actions.TAGS:
+                self.stack.append(tag.replace(self.taint, ''))
 
             # New tag found, so override attributes
             self.attrs = []
@@ -160,7 +159,7 @@ class CustomHTMLParser(HTMLParser):
         return(c_chars)
 
 if __name__ == '__main__':
-    sink = u"<div><body><body><script>abcdef</div>"
+    sink = u"<script>abcdef"
     parser = CustomHTMLParser('abcdef')
     parser.feed(sink)
     print(sink)

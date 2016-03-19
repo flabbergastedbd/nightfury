@@ -92,6 +92,7 @@ def make_experiment(exp_id=1, path="./results/ITab"):
 if __name__ == '__main__':
     try:
         nf_shared.browser = webdriver.PhantomJS()
+        # nf_shared.browser = webdriver.Chrome()
         experiment = make_experiment(exp_id=1)
         experiment.run(visualize_steps=True,  # should each learning step be shown?
                        visualize_learning=True,  # show policy / value function?

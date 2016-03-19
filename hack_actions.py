@@ -55,7 +55,7 @@ class AttrParamAction(HackAction):
         return(good_to_go and super(AttrParamAction, self).is_valid(s))
 
 
-ATTR_PARAMS = ('onblur', 'onerror', 'src', 'autofocus', 'onload')
+ATTR_PARAMS = ('onblur', 'onerror', 'src', 'autofocus', 'onload', 'href')
 for i in ATTR_PARAMS:
     ACTIONS.append(AttrParamAction(i))
 
@@ -104,10 +104,13 @@ class TagAction(HackAction):
     pass
 
 # TAGS = ('a', 'abbr', 'acronym', 'address', 'applet', 'embed', 'object', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'big', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'colgroup', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'ul', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'h1', 'h6', 'head', 'header', 'hr', 'html', 'i', 'iframe', 'img', 'input', 'ins', 'kbd', 'keygen', 'label', 'input', 'legend', 'fieldset', 'li', 'link', 'main', 'map', 'mark', 'menu', 'menuitem')
-# TAGS = ('a', 'embed', 'object', 'body', 'button', 'canvas', 'div', 'embed', 'figure', 'form', 'frame', 'iframe', 'img', 'input', 'title', 'option', 'select')
-TAGS = ['img', 'title', 'audio', 'video', 'body', 'object', 'script']
+TAGS = ('embed', 'object', 'body', 'canvas', 'div', 'embed', 'form', 'frame', 'iframe', 'img', 'input', 'option', 'select')
+# TAGS = ['img', 'title', 'audio', 'video', 'body', 'object']
 for i in TAGS:
-    ACTIONS.append(TagAction(i))
+    a = TagAction(i)
+    if i in ['title']:
+        a.dependent_dims = {'context': 'chachina_radu'}
+    ACTIONS.append(a)
 
 
 class MasterControlAction(HackAction):

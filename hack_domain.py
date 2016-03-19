@@ -19,8 +19,10 @@ class HackDomain(Domain):
     GOAL_REWARD = 10
     #: Reward for each timestep
     STEP_REWARD = -1
+    #: Reward for failure
+    FAIL_REWARD = -10
     #: Set by the domain = min(100,rows*cols)
-    episodeCap = 15
+    episodeCap = 20
 
     def __init__(self):
         self.start = 0
@@ -53,8 +55,13 @@ class HackDomain(Domain):
         return(pa)
 
     def isTerminal(self):
+        success, failure = self._is_terminal_list()
+        return(success or failure)
+
+    def _is_terminal_list(self):
         s = self.datastore.get('alert')
-        return(s)
+        c = (self.datastore.get('context') == 0)
+        return(s, c)
 
     def _update_state(self, alert=False):
         e = self._sink_environment
@@ -106,9 +113,14 @@ class HackDomain(Domain):
         partial_payload = self.actions[a].run(self._payloads_environment)
         self._inject_into_environment(partial_payload)
 
-        t = self.isTerminal()
-        r = self.GOAL_REWARD if t else self.STEP_REWARD
-        return(r, self.datastore.get_state(), t, self.possibleActions())
+        success, failure = self._is_terminal_list()
+        if success:
+            r = self.GOAL_REWARD
+        elif failure:
+            r = self.FAIL_REWARD
+        else:
+            r = self.STEP_REWARD
+        return(r, self.datastore.get_state(), self.isTerminal(), self.possibleActions())
 
     def showLearning(self, representation):
         pass
@@ -157,11 +169,15 @@ class Datastore(object):
         # NOTE: When you change this, please do corresponding changes in hack_actions.TAGS
         # Make sure you do it or else you are done for good
         self.all_sinks = [
-            '<div>%s</div>' % (self.taint),
-            '<img src=x onerror="%s">' % (self.taint),
-            '<img src=x onerror=%s' % (self.taint),
-            '<img %s' % (self.taint),
-            '<title>%s</title>' % (self.taint),
+            '%s' % (self.taint),
+            # '<body %s' % (self.taint),
+            # '<img %s' % (self.taint),
+            # '<audio %s' % (self.taint),
+            # '<video %s' % (self.taint),
+            # '<object %s' % (self.taint),
+            # '<img src=x onerror=%s' % (self.taint),
+            # '<img %s' % (self.taint),
+            # '<title>%s</title>' % (self.taint),
             # '<div %s></div>' % (self.taint),
             # '<div something="%s"></div>' % (self.taint),
             # "<div something='%s'></div>" % (self.taint),
