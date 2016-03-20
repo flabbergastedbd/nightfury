@@ -55,7 +55,7 @@ class AttrParamAction(HackAction):
         return(good_to_go and super(AttrParamAction, self).is_valid(s))
 
 
-ATTR_PARAMS = ('onblur', 'onerror', 'src', 'autofocus', 'onload', 'href')
+ATTR_PARAMS = ('onblur', 'onerror', 'src', 'onfocus', 'autofocus', 'onload', 'href')
 for i in ATTR_PARAMS:
     ACTIONS.append(AttrParamAction(i))
 
@@ -96,6 +96,27 @@ for i in DATA_VALUES:
     ACTIONS.append(DataAction(i))
 
 
+def get_open_tags(s):
+    stack = []
+    for i in range(5, 0, -1):
+        fname = str(i) + "_tag"
+        fvalue = s[fname]
+        if fvalue and fvalue not in SELF_CLOSING_TAGS:
+            end_tag = False
+            for j in range(1, 6):
+                param_fname = fname + "_" + str(j) + "_ap"
+                value_fname = fname + "_" + str(j) + "_av"
+                if s[param_fname] == "end" and s[value_fname] == 1:
+                    end_tag = True
+                    break
+            if not end_tag:
+                stack.append(fvalue)
+            elif end_tag:
+                if stack[-1] == fvalue:
+                    stack.pop()
+    return(stack)
+
+
 class TagAction(HackAction):
     """
     Action representing a HTML tag
@@ -106,15 +127,14 @@ class TagAction(HackAction):
         good_to_go = True
         if s['context'] == 'end_tag_name':
             good_to_go = False
-            for fname, fvalue in s.items():
-                if fvalue == self.string and fname.endswith("_pd"):
-                    good_to_go = True
-                    break
+            if self.string in get_open_tags(s):  # Don't use self closing tags with </
+                good_to_go = True
         return(good_to_go and super(TagAction, self).is_valid(s))
 
 # TAGS = ('a', 'abbr', 'acronym', 'address', 'applet', 'embed', 'object', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'big', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'colgroup', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'ul', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'h1', 'h6', 'head', 'header', 'hr', 'html', 'i', 'iframe', 'img', 'input', 'ins', 'kbd', 'keygen', 'label', 'input', 'legend', 'fieldset', 'li', 'link', 'main', 'map', 'mark', 'menu', 'menuitem')
-TAGS = ('title', 'embed', 'object', 'body', 'canvas', 'div', 'embed', 'form', 'frame', 'iframe', 'img', 'input', 'option', 'select', 'audio', 'video')
-# TAGS = ['img', 'title', 'audio', 'video', 'body', 'object']
+# TAGS = ('title', 'embed', 'object', 'body', 'canvas', 'div', 'embed', 'form', 'frameset', 'iframe', 'img', 'input', 'option', 'select', 'audio', 'video')
+TAGS = ['input', 'img', 'title', 'audio', 'video', 'body', 'object']
+SELF_CLOSING_TAGS = ["area", "base", "br", "col", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"]
 for i in TAGS:
     a = TagAction(i)
     ACTIONS.append(a)
@@ -154,8 +174,10 @@ class ForwardSlashControlAction(ControlAction):
     def is_valid(self, s):
         good_to_go = True
         # Check if there atleast one tag to be closed because '/' after a < will start a close tag state
-        if s['context'] == 'start_tag_name' and s['1_pd'] == 0:
+        if s['context'] == 'start_tag_name':
             good_to_go = False
+            if len(get_open_tags(s)) > 0:
+                good_to_go = True
         return(good_to_go and super(ForwardSlashControlAction, self).is_valid(s))
 
 
@@ -169,7 +191,7 @@ for i in CONTROL_CHARS:
     if i == '<':
         a.dependent_dims = {'context': 'data'}
     elif i in [' ']:
-        a.dependent_dims = {'context': 'attr_delim|attr_value_end_delim'}
+        a.dependent_dims = {'context': 'start_tag_attr|attr_delim|attr_value_end_delim'}
     elif i in ['/']:
         a = ForwardSlashControlAction(i)
         a.dependent_dims = {'context': 'start_tag_attr|start_tag_name'}

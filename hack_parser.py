@@ -7,7 +7,6 @@ from bs4 import BeautifulSoup
 class CustomHTMLParser(HTMLParser):
     def __init__(self, taint):
         self.stack = []
-        self.startendstack = []
         self.found = None
         self.found_helper = None
         self.taint = taint
@@ -33,13 +32,10 @@ class CustomHTMLParser(HTMLParser):
     def get_stack(self):
         return(self.stack)
 
-    def get_startendstack(self):
-        return(self.startendstack)
-
     def handle_startendtag(self, tag, attrs):
-        self.handle_starttag(tag, attrs, end=True)
+        self.handle_starttag(tag, attrs)
 
-    def handle_starttag(self, tag, attrs, end=False):
+    def handle_starttag(self, tag, attrs):
         if not self.found:
             temp_tag = None
             if tag.startswith(self.taint):
@@ -86,10 +82,7 @@ class CustomHTMLParser(HTMLParser):
                         temp_attrs.append([param, value])
                     else:
                         temp_attrs.append([param, None])
-            if end == False:
-                if temp_tag: self.stack.append([temp_tag, temp_attrs])
-            elif end == True:
-                if temp_tag: self.startendstack.append([temp_tag, temp_attrs])
+            if temp_tag: self.stack.append([temp_tag, temp_attrs])
 
     def handle_endtag(self, tag):
         if not self.found:
@@ -97,8 +90,9 @@ class CustomHTMLParser(HTMLParser):
                 self.found = 'end_tag_name'
             elif self.taint in tag:
                 self.found = 'end_tag_attr'
-            if len(self.stack) > 0 and self.stack[-1][0] == tag:
-                self.stack.pop()
+            temp_tag = tag.replace(self.taint, '')
+            if temp_tag in hack_actions.TAGS:
+                self.stack.append([temp_tag, [['end', 1]]])
 
     def handle_data(self, data):
         if not self.found:
@@ -167,11 +161,10 @@ class CustomHTMLParser(HTMLParser):
         return(c_chars)
 
 if __name__ == '__main__':
-    sink = u"<script>abcdef"
+    sink = u'<body onblur="popup=1; "onload=x></body>'
     parser = CustomHTMLParser('abcdef')
     parser.feed(sink)
     print(sink)
     print(parser.get_control_chars())
     print(parser.get_stack())
-    print(parser.get_startendstack())
     print(parser.get_context())

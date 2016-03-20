@@ -69,32 +69,20 @@ class HackDomain(Domain):
         parser.feed(e)
         c_chars = list(parser.get_control_chars())
         stack = parser.get_stack()[::-1]
-        startendstack = parser.get_startendstack()[::-1]
         context, context_helper =  parser.get_context()
         self.datastore.set('context', context)
         self.datastore.set('context_helper', context_helper)
 
-        if len(stack) < 2:
-            stack += [[0, []]] * (2 - len(stack))
-        for i, div_details in zip(range(1, 3), stack):
+        if len(stack) < 5:
+            stack += [[0, []]] * (5 - len(stack))
+        for i, div_details in zip(range(1, 6), stack):
             div, attrs = div_details
-            self.datastore.set(str(i) + '_pd', div)
+            self.datastore.set(str(i) + '_tag', div)
             if len(attrs) < 5:
                 attrs += [(0, 0)] * (5 - len(attrs))
             for j, attr_pair in zip(range(1, 6), attrs):
-                self.datastore.set(str(i) + '_pd_' + str(j) + '_ap', attr_pair[0])
-                self.datastore.set(str(i) + '_pd_' + str(j) + '_av', attr_pair[1])
-
-        if len(startendstack) < 2:
-            startendstack += [[0, []]] * (2 - len(startendstack))
-        for i, div_details in zip(range(1, 3), startendstack):
-            div, attrs = div_details
-            self.datastore.set(str(i) + '_d', div)
-            if len(attrs) < 5:
-                attrs += [(0, 0)] * (5 - len(attrs))
-            for j, attr_pair in zip(range(1, 6), attrs):
-                self.datastore.set(str(i) + '_d_' + str(j) + '_ap', attr_pair[0])
-                self.datastore.set(str(i) + '_d_' + str(j) + '_av', attr_pair[1])
+                self.datastore.set(str(i) + '_tag_' + str(j) + '_ap', attr_pair[0])
+                self.datastore.set(str(i) + '_tag_' + str(j) + '_av', attr_pair[1])
 
         if len(c_chars) < 2:
             c_chars += [0] * (2 - len(c_chars))
@@ -157,16 +145,11 @@ class HackDomain(Domain):
 state_dict = {'alert': 0, 'context':0, 'context_helper': 0}
 for i in range(1, 3): # cc = control character
     state_dict[str(i) + '_cc'] = 0
-for i in range(1, 3): # pd = parent div
-    state_dict[str(i) + '_pd'] = 0
+for i in range(1, 6): # pd = parent div
+    state_dict[str(i) + '_tag'] = 0
     for j in range(1, 6): # ap = attribute parameter
-        state_dict[str(i) + '_pd_' + str(j) + '_ap'] = 0
-        state_dict[str(i) + '_pd_' + str(j) + '_av'] = 0
-for i in range(1, 3): # d = div (start end div)
-    state_dict[str(i) + '_d'] = 0
-    for j in range(1, 6): # ap = attribute parameter
-        state_dict[str(i) + '_d_' + str(j) + '_ap'] = 0
-        state_dict[str(i) + '_d_' + str(j) + '_av'] = 0
+        state_dict[str(i) + '_tag_' + str(j) + '_ap'] = 0
+        state_dict[str(i) + '_tag_' + str(j) + '_av'] = 0
 """
 for t in hack_actions.TAGS:  # Used to give relative numbering using xpath
     state_dict[t] = 0
@@ -191,14 +174,14 @@ class Datastore(object):
         # NOTE: When you change this, please do corresponding changes in hack_actions.TAGS
         # Make sure you do it or else you are done for good
         self.all_sinks = [
-            '<title>%s' % (self.taint),
-            # '%s' % (self.taint),
-            # '<div src=x><img src=x onerror=%s' % (self.taint),
-            # '<body %s' % (self.taint),
-            # '<img %s' % (self.taint),
-            # '<audio %s' % (self.taint),
-            # '<video %s' % (self.taint),
-            # '<object %s' % (self.taint),
+            # '<title>%s' % (self.taint),
+            '<input %s' % (self.taint),
+            '<div src=x><img src=x onerror=%s' % (self.taint),
+            '<body %s' % (self.taint),
+            '<img %s' % (self.taint),
+            '<audio %s' % (self.taint),
+            '<video %s' % (self.taint),
+            '<object %s' % (self.taint),
             # '<img src=x onerror=%s' % (self.taint),
             # '<img %s' % (self.taint),
             # '<title>%s</title>' % (self.taint),
@@ -218,8 +201,15 @@ class Datastore(object):
         with open(self.f, 'w') as fp:
             json.dump(self.data, fp)
 
-    def _get_prop_numbered_value(self, prop_name, prop_value):
+    def _get_key(self, prop_name):
         key = prop_name + "___set"
+        if re.search("[0-9]", prop_name) and re.search("_", prop_name):
+            modified_prop_name = prop_name.split('_')[-1]
+            key = modified_prop_name + "___set"
+        return(key)
+
+    def _get_prop_numbered_value(self, prop_name, prop_value):
+        key = self._get_key(prop_name)
         try:
             dataset = self.data[key]
         except KeyError:
@@ -234,7 +224,7 @@ class Datastore(object):
                 return(num_value)
 
     def _get_prop_string_value(self, prop_name, prop_number):
-        key = prop_name + "___set"
+        key = self._get_key(prop_name)
         try:
             value = self.data[key][prop_number]
         except KeyError:
