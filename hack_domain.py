@@ -1,14 +1,11 @@
 from rlpy.Domains.Domain import Domain
 from urlparse import urlparse
-from selenium import webdriver
-from selenium.common.exceptions import WebDriverException
 
 import numpy as np
 import os
 import re
 import json
 import random
-import nf_shared
 import hack_actions
 import hack_parser
 
@@ -31,7 +28,7 @@ class HackDomain(Domain):
         self.DimNames = self.datastore.ordered_dim_names
         self.actions = hack_actions.ACTIONS
         self.actions_num = len(self.actions)
-        self.statespace_limits = np.array([[0,20] for i in range(len(self.datastore.ordered_dim_names))])
+        self.statespace_limits = np.array([[0,30] for i in range(len(self.datastore.ordered_dim_names))])
         self.discount_factor = 0.6
         super(HackDomain, self).__init__()
         self.s0()
@@ -80,7 +77,7 @@ class HackDomain(Domain):
             self.datastore.set(str(i) + '_tag', div)
             if len(attrs) < 5:
                 attrs += [(0, 0)] * (5 - len(attrs))
-            for j, attr_pair in zip(range(1, 6), attrs):
+            for j, attr_pair in zip(range(1, 4), attrs):
                 self.datastore.set(str(i) + '_tag_' + str(j) + '_ap', attr_pair[0])
                 self.datastore.set(str(i) + '_tag_' + str(j) + '_av', attr_pair[1])
 
@@ -96,24 +93,9 @@ class HackDomain(Domain):
         self.datastore.set('alert', alert)
         self.datastore.save()
 
-    def _inject_into_environment(self, s):
-        injection_index = self._sink_environment.index(self.datastore.taint)
-        self._sink_environment = self._sink_environment[:injection_index] + s + self._sink_environment[injection_index:]
-
-        self._payloads_environment.append(s)
-
-        # nf_shared.browser.get("data:text/html," + self._sink_environment.replace(self.datastore.taint, '<script>var popup = true;</script>'))
-        try:
-            nf_shared.browser.get("data:text/html,<script>var popup;</script>" + self._sink_environment.replace(self.datastore.taint, ''))
-            r = nf_shared.browser.execute_script('return popup;');
-            alert = True if r == 1 else False
-        except WebDriverException:
-            alert = False
-        self._update_state(alert=alert)
-
     def step(self, a):
-        partial_payload = self.actions[a].run(self._payloads_environment)
-        self._inject_into_environment(partial_payload)
+        self._sink_environment, alert = self.actions[a].run(self._sink_environment, self.datastore.taint)
+        self._update_state(alert=alert)
 
         actions = self.possibleActions()
         terminal = self.isTerminal()
@@ -150,7 +132,7 @@ for i in range(1, 3): # cc = control character
     state_dict[str(i) + '_cc'] = 0
 for i in range(1, 6): # pd = parent div
     state_dict[str(i) + '_tag'] = 0
-    for j in range(1, 6): # ap = attribute parameter
+    for j in range(1, 4): # ap = attribute parameter
         state_dict[str(i) + '_tag_' + str(j) + '_ap'] = 0
         state_dict[str(i) + '_tag_' + str(j) + '_av'] = 0
 """
@@ -176,10 +158,10 @@ class Datastore(object):
         # self.all_sinks = ['<script alert();//></script>', '<script something="alert();//"></script>']
         # NOTE: When you change this, please do corresponding changes in hack_actions.TAGS
         # Make sure you do it or else you are done for good
-        self.all_sinks = [
+        self.all_sinks = ['<%s %s' % (x, self.taint) for x in hack_actions.TAGS
             # '<keygen %s' % (self.taint),
             # '<canvas %s' % (self.taint),
-            '<form %s' % (self.taint),
+            # '<picture>%s' % (self.taint),
             # '%s' % (self.taint),
             # '<div src=x><img src=x onerror=%s' % (self.taint),
             # '<body %s' % (self.taint),

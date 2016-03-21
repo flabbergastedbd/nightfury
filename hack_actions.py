@@ -2,10 +2,12 @@ import os
 import re
 import md5
 import json
+import nf_shared
 import subprocess
 import numpy as np
 
 from urlparse import urlparse
+from selenium.common.exceptions import WebDriverException
 
 ACTIONS = []
 
@@ -29,8 +31,18 @@ class HackAction(object):
                 break
         return good_to_go
 
-    def run(self, payload_list):
-        return(self.string)
+    def run(self, sink, taint):
+        injection_index = sink.index(taint)
+        sink = sink[:injection_index] + self.string + sink[injection_index:]
+
+        # nf_shared.browser.get("data:text/html," + sink.replace(taint, '<script>var popup = true;</script>'))
+        try:
+            nf_shared.browser.get("data:text/html,<script>var popup;</script>" + sink.replace(taint, ''))
+            r = nf_shared.browser.execute_script('return popup;');
+            alert = True if r == 1 else False
+        except WebDriverException:
+            alert = False
+        return(sink, alert)
 
     def __str__(self):
         return(self.string)
@@ -47,7 +59,7 @@ class AttrParamAction(HackAction):
     dependent_dims = {'context': 'attr_param'}
 
     def is_valid(self, s):
-        good_to_go = True
+        good_to_go = True if 0 in [s['1_tag_' + str(i) + '_ap'] for i in range(1, 4)] else False
         for feature_name, feature_value in s.items():
             if feature_name.endswith("_ap") and feature_value == self.string:
                 good_to_go = False
@@ -55,7 +67,7 @@ class AttrParamAction(HackAction):
         return(good_to_go and super(AttrParamAction, self).is_valid(s))
 
 
-ATTR_PARAMS = ('onblur', 'onerror', 'src', 'onfocus', 'autofocus', 'onload', 'href', 'data')
+ATTR_PARAMS = ('onblur', 'onerror', 'src', 'onfocus', 'autofocus', 'onload', 'href', 'data', 'rel', 'srcset', 'open', 'ontoggle')
 for i in ATTR_PARAMS:
     ACTIONS.append(AttrParamAction(i))
 
@@ -82,7 +94,8 @@ ATTR_VALUES = [
     'x',
     'popup=1;',
     'data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==',
-    'data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+']
+    'data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+',
+    'import']
 for i in ATTR_VALUES:
     ACTIONS.append(AttrValueAction(i))
 
@@ -107,7 +120,7 @@ def get_open_tags(s):
         fvalue = s[fname]
         if fvalue and fvalue not in SELF_CLOSING_TAGS:
             end_tag = False
-            for j in range(5, 1, -1):
+            for j in range(3, 1, -1):
                 param_fname = fname + "_" + str(j) + "_ap"
                 value_fname = fname + "_" + str(j) + "_av"
                 if s[param_fname] == "end" and s[value_fname] == 1:
@@ -136,8 +149,9 @@ class TagAction(HackAction):
         return(good_to_go and super(TagAction, self).is_valid(s))
 
 # TAGS = ('a', 'abbr', 'acronym', 'address', 'applet', 'embed', 'object', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'big', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'colgroup', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'ul', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'h1', 'h6', 'head', 'header', 'hr', 'html', 'i', 'iframe', 'img', 'input', 'ins', 'kbd', 'keygen', 'label', 'input', 'legend', 'fieldset', 'li', 'link', 'main', 'map', 'mark', 'menu', 'menuitem')
-TAGS = ('embed', 'object', 'body', 'canvas', 'div', 'embed', 'form', 'frameset', 'iframe', 'img', 'input', 'option', 'select', 'audio', 'video', 'source', 'track', 'svg')
-# TAGS = ['input', 'img', 'title', 'audio', 'video', 'body', 'object']
+TAGS = ('embed', 'object', 'body', 'canvas', 'div', 'embed', 'form', 'frameset', 'iframe', 'img', 'input', 'option', 'select', 'audio', 'video', 'source', 'track', 'svg', 'link', 'picture')
+# TAGS = ['body', 'figcaption', 'aside', 'dialog', 'main', 'figure', 'mark', 'menuitem', 'rt', 'footer', 'rp', 'meter', 'article', 'bdi', 'details', 'section', 'ruby', 'header', 'wbr', 'time', 'summary', 'progress', 'nav']
+# TAGS = ['div', 'input', 'img', 'audio', 'video', 'body', 'object']
 SELF_CLOSING_TAGS = ["area", "base", "br", "col", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"]
 for i in TAGS:
     a = TagAction(i)
@@ -196,6 +210,16 @@ class SpaceControlAction(ControlAction):
                 good_to_go = True
         return(good_to_go and super(SpaceControlAction, self).is_valid(s))
 
+class GreaterThanControlAction(ControlAction):
+    """
+    Action representing a control character
+    """
+    def is_valid(self, s):
+        good_to_go = True
+        if s['context'] in ['attr_param', 'attr_delim', 'end_tag_attr', 'start_tag_attr'] and s['5_tag'] != 0:  # If 5 tags are already there, no new tags
+            good_to_go = False
+        return(good_to_go and super(GreaterThanControlAction, self).is_valid(s))
+
 
 CONTROL_CHARS = [' ', '(', ')', '*', '+', '-', ',', ';', '<', '>', '=', '[', ']', '{', '}', '`', '/']
 CONTROL_CHARS = [' ', '<', '>', '/', '=']
@@ -203,6 +227,7 @@ CONTROL_CHARS = [' ', '<', '>', '/', '=']
 for i in CONTROL_CHARS:
     a = ControlAction(i)
     if i == '>':
+        a = GreaterThanControlAction(i)
         a.dependent_dims = {'context': 'start_tag_attr|end_tag_attr|attr_param|equal_dim|attr_delim'}
     if i == '<':
         a.dependent_dims = {'context': 'data'}
