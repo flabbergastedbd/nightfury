@@ -89,7 +89,10 @@ class HackDomain(Domain):
         for i, cc in zip(range(1, 3), list(c_chars)):
             self.datastore.set(str(i) + '_cc', cc)
 
-        if alert: print("Sink : %s (%s)" % (e, self.datastore.get_verbose_state()))
+        if alert:
+            with open('payloads.txt', 'a') as f:
+                f.write('%s\n' % (e))
+            print("Sink : %s (%s)" % (e, self.datastore.get_verbose_state()))
         self.datastore.set('alert', alert)
         self.datastore.save()
 
@@ -174,14 +177,16 @@ class Datastore(object):
         # NOTE: When you change this, please do corresponding changes in hack_actions.TAGS
         # Make sure you do it or else you are done for good
         self.all_sinks = [
-            # '<title>%s' % (self.taint),
-            '<input %s' % (self.taint),
-            '<div src=x><img src=x onerror=%s' % (self.taint),
-            '<body %s' % (self.taint),
-            '<img %s' % (self.taint),
-            '<audio %s' % (self.taint),
-            '<video %s' % (self.taint),
-            '<object %s' % (self.taint),
+            # '<keygen %s' % (self.taint),
+            # '<canvas %s' % (self.taint),
+            '<form %s' % (self.taint),
+            # '%s' % (self.taint),
+            # '<div src=x><img src=x onerror=%s' % (self.taint),
+            # '<body %s' % (self.taint),
+            # '<img %s' % (self.taint),
+            # '<audio %s' % (self.taint),
+            # '<video %s' % (self.taint),
+            # '<object %s' % (self.taint),
             # '<img src=x onerror=%s' % (self.taint),
             # '<img %s' % (self.taint),
             # '<title>%s</title>' % (self.taint),

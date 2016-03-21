@@ -55,7 +55,7 @@ class AttrParamAction(HackAction):
         return(good_to_go and super(AttrParamAction, self).is_valid(s))
 
 
-ATTR_PARAMS = ('onblur', 'onerror', 'src', 'onfocus', 'autofocus', 'onload', 'href')
+ATTR_PARAMS = ('onblur', 'onerror', 'src', 'onfocus', 'autofocus', 'onload', 'href', 'data')
 for i in ATTR_PARAMS:
     ACTIONS.append(AttrParamAction(i))
 
@@ -78,7 +78,11 @@ class AttrValueAction(HackAction):
                     break
         return(good_to_go and super(AttrValueAction, self).is_valid(s))
 
-ATTR_VALUES = ['x', 'popup=1;']
+ATTR_VALUES = [
+    'x',
+    'popup=1;',
+    'data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==',
+    'data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+']
 for i in ATTR_VALUES:
     ACTIONS.append(AttrValueAction(i))
 
@@ -103,7 +107,7 @@ def get_open_tags(s):
         fvalue = s[fname]
         if fvalue and fvalue not in SELF_CLOSING_TAGS:
             end_tag = False
-            for j in range(1, 6):
+            for j in range(5, 1, -1):
                 param_fname = fname + "_" + str(j) + "_ap"
                 value_fname = fname + "_" + str(j) + "_av"
                 if s[param_fname] == "end" and s[value_fname] == 1:
@@ -132,8 +136,8 @@ class TagAction(HackAction):
         return(good_to_go and super(TagAction, self).is_valid(s))
 
 # TAGS = ('a', 'abbr', 'acronym', 'address', 'applet', 'embed', 'object', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'big', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'colgroup', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'ul', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'h1', 'h6', 'head', 'header', 'hr', 'html', 'i', 'iframe', 'img', 'input', 'ins', 'kbd', 'keygen', 'label', 'input', 'legend', 'fieldset', 'li', 'link', 'main', 'map', 'mark', 'menu', 'menuitem')
-# TAGS = ('title', 'embed', 'object', 'body', 'canvas', 'div', 'embed', 'form', 'frameset', 'iframe', 'img', 'input', 'option', 'select', 'audio', 'video')
-TAGS = ['input', 'img', 'title', 'audio', 'video', 'body', 'object']
+TAGS = ('embed', 'object', 'body', 'canvas', 'div', 'embed', 'form', 'frameset', 'iframe', 'img', 'input', 'option', 'select', 'audio', 'video', 'source', 'track', 'svg')
+# TAGS = ['input', 'img', 'title', 'audio', 'video', 'body', 'object']
 SELF_CLOSING_TAGS = ["area", "base", "br", "col", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"]
 for i in TAGS:
     a = TagAction(i)
@@ -180,6 +184,18 @@ class ForwardSlashControlAction(ControlAction):
                 good_to_go = True
         return(good_to_go and super(ForwardSlashControlAction, self).is_valid(s))
 
+class SpaceControlAction(ControlAction):
+    """
+    Action representing a control character
+    """
+    def is_valid(self, s):
+        good_to_go = True
+        if s['context'] == 'attr_value_end_delim':
+            good_to_go = False
+            if s['1_cc'] not in MASTER_CONTROL_CHARS:
+                good_to_go = True
+        return(good_to_go and super(SpaceControlAction, self).is_valid(s))
+
 
 CONTROL_CHARS = [' ', '(', ')', '*', '+', '-', ',', ';', '<', '>', '=', '[', ']', '{', '}', '`', '/']
 CONTROL_CHARS = [' ', '<', '>', '/', '=']
@@ -191,6 +207,7 @@ for i in CONTROL_CHARS:
     if i == '<':
         a.dependent_dims = {'context': 'data'}
     elif i in [' ']:
+        a = SpaceControlAction(i)
         a.dependent_dims = {'context': 'start_tag_attr|attr_delim|attr_value_end_delim'}
     elif i in ['/']:
         a = ForwardSlashControlAction(i)

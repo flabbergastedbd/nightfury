@@ -161,7 +161,7 @@ class CustomHTMLParser(HTMLParser):
         return(c_chars)
 
 if __name__ == '__main__':
-    sink = u'<body onblur="popup=1; "onload=x></body>'
+    sink = u'<keygen ><iframe/onload=popup=1;>'
     parser = CustomHTMLParser('abcdef')
     parser.feed(sink)
     print(sink)
