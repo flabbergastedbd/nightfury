@@ -57,7 +57,7 @@ class HackDomain(Domain):
 
     def _is_terminal_list(self):
         s = self.datastore.get('alert')
-        c = (self.datastore.get('context') == 0)
+        c = (len(self.possibleActions()) == 0)
         return(s, c)
 
     def _update_state(self, alert=False):
@@ -102,13 +102,13 @@ class HackDomain(Domain):
         success, failure = self._is_terminal_list()
         if success:
             r = self.GOAL_REWARD
-        elif failure or len(actions) == 0:
+        elif len(actions) == 0:
             r = self.FAIL_REWARD
             terminal = True
             if len(actions) == 0:
                 print("Terminal due to lack of action")
-                print(self.datastore.get_verbose_state())
                 print(self._sink_environment)
+                print(self.datastore.get_verbose_state())
         else:
             r = self.STEP_REWARD
         return(r, self.datastore.get_state(), terminal, actions)

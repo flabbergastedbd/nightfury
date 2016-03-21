@@ -210,15 +210,15 @@ class SpaceControlAction(ControlAction):
                 good_to_go = True
         return(good_to_go and super(SpaceControlAction, self).is_valid(s))
 
-class GreaterThanControlAction(ControlAction):
+class LessThanControlAction(ControlAction):
     """
     Action representing a control character
     """
     def is_valid(self, s):
         good_to_go = True
-        if s['context'] in ['attr_param', 'attr_delim', 'end_tag_attr', 'start_tag_attr'] and s['5_tag'] != 0:  # If 5 tags are already there, no new tags
+        if s['context'] in ['delim'] and s['5_tag'] != 0:  # If 5 tags are already there, no new tags
             good_to_go = False
-        return(good_to_go and super(GreaterThanControlAction, self).is_valid(s))
+        return(good_to_go and super(LessThanControlAction, self).is_valid(s))
 
 
 CONTROL_CHARS = [' ', '(', ')', '*', '+', '-', ',', ';', '<', '>', '=', '[', ']', '{', '}', '`', '/']
@@ -227,9 +227,9 @@ CONTROL_CHARS = [' ', '<', '>', '/', '=']
 for i in CONTROL_CHARS:
     a = ControlAction(i)
     if i == '>':
-        a = GreaterThanControlAction(i)
         a.dependent_dims = {'context': 'start_tag_attr|end_tag_attr|attr_param|equal_dim|attr_delim'}
     if i == '<':
+        a = LessThanControlAction(i)
         a.dependent_dims = {'context': 'data'}
     elif i in [' ']:
         a = SpaceControlAction(i)
