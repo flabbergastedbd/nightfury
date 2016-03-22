@@ -8,12 +8,15 @@ import numpy as np
 
 from urlparse import urlparse
 from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.common.keys import Keys
+
 
 ACTIONS = []
 
 class HackAction(object):
     dependent_dims = {}
     dependency_dims = []
+    reward = -1
     def __init__(self, s):
         self.string = s or ''
 
@@ -31,7 +34,7 @@ class HackAction(object):
                 break
         return good_to_go
 
-    def run(self, sink, taint):
+    def run(self, sink, taint, state):
         injection_index = sink.index(taint)
         sink = sink[:injection_index] + self.string + sink[injection_index:]
 
@@ -67,7 +70,7 @@ class AttrParamAction(HackAction):
         return(good_to_go and super(AttrParamAction, self).is_valid(s))
 
 
-ATTR_PARAMS = ('onblur', 'onerror', 'src', 'onfocus', 'autofocus', 'onload', 'href', 'data', 'rel', 'srcset', 'open', 'ontoggle')
+ATTR_PARAMS = ('onblur', 'onerror', 'src', 'onfocus', 'autofocus', 'onload', 'href', 'data', 'rel', 'srcset', 'open', 'ontoggle', 'onchange', 'onfocus', 'onclick', 'for', 'id', 'formaction')
 for i in ATTR_PARAMS:
     ACTIONS.append(AttrParamAction(i))
 
@@ -149,7 +152,7 @@ class TagAction(HackAction):
         return(good_to_go and super(TagAction, self).is_valid(s))
 
 # TAGS = ('a', 'abbr', 'acronym', 'address', 'applet', 'embed', 'object', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'big', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'colgroup', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'ul', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'h1', 'h6', 'head', 'header', 'hr', 'html', 'i', 'iframe', 'img', 'input', 'ins', 'kbd', 'keygen', 'label', 'input', 'legend', 'fieldset', 'li', 'link', 'main', 'map', 'mark', 'menu', 'menuitem')
-TAGS = ('embed', 'object', 'body', 'canvas', 'div', 'embed', 'form', 'frameset', 'iframe', 'img', 'input', 'option', 'select', 'audio', 'video', 'source', 'track', 'svg', 'link', 'picture')
+TAGS = ('button', 'embed', 'object', 'body', 'canvas', 'div', 'embed', 'form', 'frameset', 'iframe', 'img', 'input', 'option', 'select', 'audio', 'video', 'source', 'track', 'svg', 'link', 'picture')
 # TAGS = ['body', 'figcaption', 'aside', 'dialog', 'main', 'figure', 'mark', 'menuitem', 'rt', 'footer', 'rp', 'meter', 'article', 'bdi', 'details', 'section', 'ruby', 'header', 'wbr', 'time', 'summary', 'progress', 'nav']
 # TAGS = ['div', 'input', 'img', 'audio', 'video', 'body', 'object']
 SELF_CLOSING_TAGS = ["area", "base", "br", "col", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"]
@@ -247,3 +250,46 @@ COUNTER_CONTROL_CHARS = {
     '{': '}',
     '`': '`'
 }
+
+
+class MouseKeyboardAction(object):
+    reward = -15
+    def __init__(self, s, action='click'):
+        self.tag_num = s
+        self.action = action
+
+    def run(self, sink, taint, state):
+        tag = state[str(self.tag_num) + "_tag"]
+        previous_tags = [state[str(i) + "_tag"] for i in range(self.tag_num - 1, 1, -1)]
+        i = previous_tags.count(tag)
+        # nf_shared.browser.get("data:text/html," + sink.replace(taint, '<script>var popup = true;</script>'))
+        try:
+            nf_shared.browser.get("data:text/html,<script>var popup;</script>" + sink.replace(taint, ''))
+            elements = nf_shared.browser.find_elements_by_tag_name(tag)
+            e = elements[i]
+            # Perform action
+            if self.action == 'click':
+                e.click()
+            elif self.action == 'focus':
+                e.send_keys(Keys.NULL)
+            elif self.action == 'keyboard':
+                e.send_keys("1337")
+            r = nf_shared.browser.execute_script('return popup;');
+            alert = True if r == 1 else False
+        except WebDriverException:
+            alert = False
+        except IndexError:  # IndexError when selenium cannot find element
+            alert = False
+        return(sink, alert)
+
+    def is_valid(self, s):
+        good_to_go = False
+        if s[str(self.tag_num) + "_tag"] != 0 and s[str(self.tag_num) + "_tag"] not in ['div', 'link', 'body']:
+            good_to_go = True
+            if self.tag_num == 1 and s['context'] != 'data':  # Or else click will happen when sink is incomplete i.e <button abcdef
+                good_to_go = False
+        return(good_to_go)
+
+for a in ['click', 'focus', 'keyboard']:
+    for i in range(1, 6):
+        ACTIONS.append(MouseKeyboardAction(i, action=a))

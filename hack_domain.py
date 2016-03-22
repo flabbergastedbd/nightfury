@@ -94,7 +94,7 @@ class HackDomain(Domain):
         self.datastore.save()
 
     def step(self, a):
-        self._sink_environment, alert = self.actions[a].run(self._sink_environment, self.datastore.taint)
+        self._sink_environment, alert = self.actions[a].run(self._sink_environment, self.datastore.taint, self.datastore.get_state_dict())
         self._update_state(alert=alert)
 
         actions = self.possibleActions()
@@ -110,7 +110,7 @@ class HackDomain(Domain):
                 print(self._sink_environment)
                 print(self.datastore.get_verbose_state())
         else:
-            r = self.STEP_REWARD
+            r = self.actions[a].reward
         return(r, self.datastore.get_state(), terminal, actions)
 
     def showLearning(self, representation):
@@ -158,10 +158,12 @@ class Datastore(object):
         # self.all_sinks = ['<script alert();//></script>', '<script something="alert();//"></script>']
         # NOTE: When you change this, please do corresponding changes in hack_actions.TAGS
         # Make sure you do it or else you are done for good
-        self.all_sinks = ['<%s %s' % (x, self.taint) for x in hack_actions.TAGS
+        self.all_sinks = ['<%s %s' % (tag, self.taint) for tag in hack_actions.TAGS
             # '<keygen %s' % (self.taint),
             # '<canvas %s' % (self.taint),
             # '<picture>%s' % (self.taint),
+            # '<form %s' % (self.taint),
+            # '<link %s' %(self.taint),
             # '%s' % (self.taint),
             # '<div src=x><img src=x onerror=%s' % (self.taint),
             # '<body %s' % (self.taint),
