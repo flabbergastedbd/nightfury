@@ -253,7 +253,7 @@ COUNTER_CONTROL_CHARS = {
 
 
 class MouseKeyboardAction(object):
-    reward = -15
+    reward = -30
     def __init__(self, s, action='click'):
         self.tag_num = s
         self.action = action
