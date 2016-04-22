@@ -7,20 +7,19 @@ from text2num import text2num
 from pattern.en import parsetree, pprint, singularize, wordnet
 
 def custom_similarity(word, synsets, pos=None):
-    try:
-        word = singularize(word.lower())
-        similarities = []
-        if pos:
-            word_synsets = wordnet.synsets(word, pos=pos)
-        else:
-            word_synsets = wordnet.synsets(word)
-        for i in synsets:
-            for j in word_synsets:
+    word = singularize(word.lower())
+    similarities = []
+    if pos:
+        word_synsets = wordnet.synsets(word, pos=pos)
+    else:
+        word_synsets = wordnet.synsets(word)
+    for i in synsets:
+        for j in word_synsets:
+            try:
                 similarities.append(wordnet.similarity(i, j))
-    except Exception, e:
-        print(e)
-    finally:
-        return(max(similarities) if len(similarities) > 0 else 0)
+            except Exception, e:
+                print(e)
+    return(max(similarities) if len(similarities) > 0 else 0)
 
 
 def alphabet_similarity(word):
@@ -39,6 +38,8 @@ def uppercase_similarity(word):
     return(custom_similarity(word, [wordnet.synsets('uppercase')[0], wordnet.synsets('upper')[0]]))
 
 def special_similarity(word):
+    if word.startswith("special"):
+        return(1.0)
     return(custom_similarity(word, [wordnet.synsets('special', pos=wordnet.ADJECTIVE)[1], wordnet.synsets('special', pos=wordnet.ADJECTIVE)[3]]))
 
 VECTOR = {"length": 0, "chars": []}
@@ -112,7 +113,31 @@ def help2vec(p):
                             ignore = True
 
                 requirements.append(vector)
-    return(requirements)
+
+
+    # Handling conjunctions at sentence level
+    # Merging vectors based on 'and' and 'or' as of now
+    l = []
+    last_chunk = None
+    for w in t.words:
+        if w.chunk == None and w.type.startswith("CC"):
+            if w.string.lower() == "or":
+                l.append(1)
+        elif w.chunk and w.chunk.type == "NP":
+            if last_chunk == None or (last_chunk != w.chunk):
+                l.append(requirements.pop(0))
+                last_chunk = w.chunk
+
+    final = []
+    i = 0
+    while i < len(l):
+        if l[i] == 1:
+            i += 2
+        else:
+            final.append(l[i])
+            i += 1
+
+    return(final)
 
 if __name__ == "__main__":
     texts = [
@@ -121,7 +146,9 @@ if __name__ == "__main__":
         "Use at least one lowercase letter, one numeral, and seven characters",
         "6 or more characters",
         "5 or 7 numbers",
-        "5 numbers and 7 capitals"
+        "5 numbers or 7 capitals",
+        "5 numbers and 7 capitals",
+        "Cannot contain special characters"
     ]
     for p in texts:
         print(help2vec(p))
