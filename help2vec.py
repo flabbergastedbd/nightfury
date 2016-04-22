@@ -41,16 +41,6 @@ def uppercase_similarity(word):
 def special_similarity(word):
     return(custom_similarity(word, [wordnet.synsets('special', pos=wordnet.ADJECTIVE)[1], wordnet.synsets('special', pos=wordnet.ADJECTIVE)[3]]))
 
-ALPHABET_SYNS = []
-
-NUMBER_SYNS = []
-
-LOWERCASE_SYNS = []
-
-UPPERCASE_SYNS = []
-
-CAPITALS_SYNS = []
-
 VECTOR = {"length": 0, "chars": []}
 
 def operate(old_chars, new_chars, op):
@@ -73,8 +63,8 @@ class Operator(object):
 
 def help2vec(p):
     t = parsetree(p)
+    requirements = []
     for sen in t:
-        requirements = []
         for i, chunk in enumerate(sen.chunks):
             if chunk.type == "NP":
                 vector = copy.deepcopy(VECTOR)
@@ -122,8 +112,8 @@ def help2vec(p):
                             ignore = True
 
                 requirements.append(vector)
-        pprint(sen)
-        print(requirements)
+    return(requirements)
+
 if __name__ == "__main__":
     texts = [
         "Must have at least 6 characters (with letters and numbers) and no special characters.",
@@ -134,5 +124,5 @@ if __name__ == "__main__":
         "5 numbers and 7 capitals"
     ]
     for p in texts:
-        help2vec(p)
+        print(help2vec(p))
         print("\n")
