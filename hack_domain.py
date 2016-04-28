@@ -70,14 +70,14 @@ class HackDomain(Domain):
         self.datastore.set('context', context)
         self.datastore.set('context_helper', context_helper)
 
-        if len(stack) < 5:
-            stack += [[0, []]] * (5 - len(stack))
-        for i, div_details in zip(range(1, 6), stack):
+        if len(stack) < 2:
+            stack += [[0, []]] * (2 - len(stack))
+        for i, div_details in zip(range(1, 3), stack):
             div, attrs = div_details
             self.datastore.set(str(i) + '_tag', div)
-            if len(attrs) < 5:
-                attrs += [(0, 0)] * (5 - len(attrs))
-            for j, attr_pair in zip(range(1, 4), attrs):
+            if len(attrs) < 2:
+                attrs += [(0, 0)] * (2 - len(attrs))
+            for j, attr_pair in zip(range(1, 3), attrs):
                 self.datastore.set(str(i) + '_tag_' + str(j) + '_ap', attr_pair[0])
                 self.datastore.set(str(i) + '_tag_' + str(j) + '_av', attr_pair[1])
 
@@ -105,10 +105,12 @@ class HackDomain(Domain):
         elif len(actions) == 0:
             r = self.FAIL_REWARD
             terminal = True
-            if len(actions) == 0:
-                print("Terminal due to lack of action")
-                print(self._sink_environment)
-                print(self.datastore.get_verbose_state())
+            actions = [len(self.actions) - 1]
+            """
+            print("Terminal due to lack of action")
+            print(self._sink_environment)
+            print(self.datastore.get_verbose_state())
+            """
         else:
             r = self.actions[a].reward
         return(r, self.datastore.get_state(), terminal, actions)
@@ -130,9 +132,9 @@ class HackDomain(Domain):
 state_dict = {'alert': 0, 'context':0, 'context_helper': 0}
 for i in range(1, 3): # cc = control character
     state_dict[str(i) + '_cc'] = 0
-for i in range(1, 6): # pd = parent div
+for i in range(1, 3): # pd = parent div
     state_dict[str(i) + '_tag'] = 0
-    for j in range(1, 4): # ap = attribute parameter
+    for j in range(1, 3): # ap = attribute parameter
         state_dict[str(i) + '_tag_' + str(j) + '_ap'] = 0
         state_dict[str(i) + '_tag_' + str(j) + '_av'] = 0
 """
@@ -162,7 +164,7 @@ class Datastore(object):
             # '<keygen %s' % (self.taint),
             # '<canvas %s' % (self.taint),
             # '<picture>%s' % (self.taint),
-            # '<form %s' % (self.taint),
+            # '<div class=%s' % (self.taint),
             # '<link %s' %(self.taint),
             # '%s' % (self.taint),
             # '<div src=x><img src=x onerror=%s' % (self.taint),

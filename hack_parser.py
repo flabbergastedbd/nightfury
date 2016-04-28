@@ -82,7 +82,9 @@ class CustomHTMLParser(HTMLParser):
                         temp_attrs.append([param, value])
                     else:
                         temp_attrs.append([param, None])
-            if temp_tag: self.stack.append([temp_tag, temp_attrs])
+            if temp_tag:
+                temp_attrs.sort(key=lambda x: x[0])
+                self.stack.append([temp_tag, temp_attrs])
 
     def handle_endtag(self, tag):
         if not self.found:

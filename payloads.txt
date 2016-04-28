@@ -1,598 +1,236 @@
-<input onclick='popup=1;'onblur=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== srcset=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ ><canvasabcdef
-<embed onfocus=popup=1; onerror="x"onclick=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ >abcdef
-<video onclick=popup=1; formaction="x"onerror=x >abcdef
-<button srcset=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onchange=x onfocus=popup=1; ></buttonabcdef
-<input onclick=popup=1; onfocus=x>abcdef
-<select onfocus=popup=1;>abcdef
-<select src=import data=popup=1; onclick=popup=1;><video>abcdef
-<embed onfocus=popup=1; srcset="import"autofocus=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ >abcdef
-<iframe onfocus=popup=1;>abcdef
-<object id="popup=1;"srcset="import"onfocus=popup=1;>abcdef
-<svg onload=popup=1; srcset=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onchange=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ >abcdef
-<svg onload="popup=1;"href=x>abcdef
-<video onerror='popup=1;'src=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+>abcdef
-<body formaction='x'onload=popup=1;>abcdef
-<frameset srcset=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onload=popup=1;>abcdef
-<svg onchange="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+"open=popup=1; onfocus=popup=1; >abcdef
-<object onfocus=popup=1;>abcdef
-<input onerror="popup=1;"onfocus='popup=1;'srcset='popup=1;'>abcdef
-<body onerror=popup=1;><svg/src=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onfocus=import><img/autofocusabcdef
-<div onclick=popup=1;><button ontoggle=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==>abcdef
-<button onfocus='popup=1;'ontoggle=popup=1; srcset=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==>abcdef
-<svg src=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onload="popup=1;"srcset="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+">abcdef
-<svg src="popup=1;"autofocus=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onclick=popup=1; >abcdef
-<iframe onload=popup=1;>abcdef
-<input onload=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onfocus=popup=1; rel=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== >abcdef
-<frameset onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<object onload="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+"href="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+"onfocus=popup=1;><canvas srcsetabcdef
-<svg onfocus=popup=1;><input/formactionabcdef
-<embed onfocus=popup=1;><imgabcdef
-<svg onchange=import ontoggle=x onfocus=popup=1; ></svgabcdef
-<object rel=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onchange="x"onfocus='popup=1;'><divabcdef
-<button onchange=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onfocus='popup=1;'srcset=popup=1; ><linkabcdef
-<button srcset=popup=1; onfocus=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<input src=popup=1; onclick=popup=1;>abcdef
-<select onclick=popup=1;><iframe/formactionabcdef
-<button data=x href='import'onfocus=popup=1;>abcdef
-<svg formaction=import onclick="popup=1;"onerror=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<body onerror="data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=="onload='popup=1;'onfocus='popup=1;'>abcdef
-<body rel='popup=1;'onerror=popup=1; onload=x >abcdef
-<button open="data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=="onfocus="popup=1;"id=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==><canvas abcdef
-<svg open=popup=1; href=popup=1; onfocus="popup=1;">abcdef
-<select data=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onfocus=popup=1; srcset=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==>abcdef
-<svg data=x onclick=popup=1;>abcdef
-<button onfocus="popup=1;"src=x onblur='import'>abcdef
-<select href="popup=1;"onchange=x onfocus=popup=1; ></selectabcdef
-<embed autofocus="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+"onclick=import onfocus=popup=1; >abcdef
-<svg onclick=popup=1;><pictureabcdef
-<input onclick="popup=1;"onerror=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ ontoggle=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== >abcdef
-<svg onload=popup=1; onerror=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ data=x >abcdef
-<svg onblur=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onfocus=popup=1;><frameset/forabcdef
-<iframe onload=popup=1;>abcdef
-<svg src='import'onfocus="popup=1;"id='x'><buttonabcdef
-<embed rel="popup=1;"onblur=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onfocus=popup=1; ><linkabcdef
-<select open="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+"onfocus=popup=1; >abcdef
-<input open=import onfocus=popup=1;>abcdef
-<button onclick=popup=1; autofocus='popup=1;'id=popup=1;>abcdef
-<select onclick=popup=1; id=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+><source onfocus=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+abcdef
-<svg onload="popup=1;"formaction=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onerror=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== >abcdef
-<body onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<svg formaction=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onfocus=popup=1;>abcdef
-<select onfocus=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<object onfocus="popup=1;"onerror='x'rel=import><selectabcdef
-<div autofocus=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==><button onclick=popup=1;><svg abcdef
-<button autofocus=x onchange='import'onfocus=popup=1; >abcdef
-<embed autofocus='x'for=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onfocus='popup=1;'>abcdef
-<select rel='data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=='onfocus='popup=1;'href=import>abcdef
-<iframe onload=popup=1;>abcdef
-<svg onload='popup=1;'onblur=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==>abcdef
-<body onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<input src=x onclick=popup=1; id=popup=1; >abcdef
-<embed for=import onfocus=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<input onchange='data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=='onfocus=popup=1; onerror="data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==">abcdef
-<iframe data="data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=="open=popup=1; onload='popup=1;'>abcdef
-<embed onfocus=popup=1; data='data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+'src='data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=='>abcdef
-<input rel=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onload='import'onfocus="popup=1;">abcdef
-<video onclick=popup=1; onerror=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==>abcdef
-<input onclick=popup=1; onfocus=import id='popup=1;'>abcdef
-<button onclick="popup=1;"formaction=x srcset='data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=='>abcdef
-<canvas onclick=popup=1;><video/forabcdef
-<button onclick=popup=1;>abcdef
-<canvas onclick=popup=1; id=popup=1;>abcdef
-<svg onfocus="popup=1;"src=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== formaction=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==>abcdef
-<iframe onfocus=popup=1;>abcdef
-<iframe id="import"onfocus=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<input onload=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onfocus="popup=1;"onerror='popup=1;'>abcdef
-<body onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<frameset onload=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onclick="popup=1;"onchange=import>abcdef
-<embed data='x'id='x'onfocus=popup=1; >abcdef
-<div onerror=popup=1;><embed/src=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onfocus=popup=1;>abcdef
-<frameset onblur='popup=1;'onload='popup=1;'onchange='import'>abcdef
-<svg onblur="x"href=popup=1; onfocus=popup=1;>abcdef
-<canvas onblur=popup=1; onclick=popup=1;>abcdef
-<input autofocus=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onfocus=popup=1;>abcdef
-<button onfocus=popup=1;><div openabcdef
-<iframe onfocus=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<frameset srcset=popup=1; ontoggle='data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=='onclick=popup=1;><svgabcdef
-<frameset onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<canvas onclick="popup=1;">abcdef
-<select onfocus=popup=1;>abcdef
-<button data=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onfocus="popup=1;"onclick=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==>abcdef
-<embed for="x"onclick=x onfocus=popup=1; >abcdef
 <embed onfocus=popup=1;>abcdef
-<embed open=import onfocus=popup=1;><videoabcdef
-<svg autofocus=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onfocus=popup=1; rel=x >abcdef
-<iframe srcset=import onload='popup=1;'src=x >abcdef
-<iframe onfocus=popup=1;>abcdef
-<canvas onchange=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onclick=popup=1;>abcdef
-<input src="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+"href="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+"onfocus=popup=1;><canvas srcsetabcdef
-<body onblur=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+><iframe/onload=popup=1;>abcdef
-<input onclick=popup=1;>abcdef
-<select onclick=popup=1;>abcdef
-<frameset onclick=popup=1; onchange=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==><video srcset=xabcdef
-<embed onclick=popup=1; onfocus=popup=1; ontoggle=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==><framesetabcdef
-<select onclick=popup=1;>abcdef
-<svg onclick=popup=1; onerror='import'open=popup=1; >abcdef
+<input onload=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onfocus=popup=1;>abcdef
+<video for=import onclick=popup=1;>abcdef
+<body srcset=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onload=popup=1; >abcdef
+<img onclick=popup=1; src=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+>abcdef
+<button src=x onfocus=popup=1; >abcdef
+<embed onfocus=popup=1;>abcdef
 <select onfocus=popup=1;>abcdef
-<object open='data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=='onclick=import onfocus=popup=1; >abcdef
-<select onchange="data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=="data=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onfocus=popup=1;><canvas relabcdef
-<embed onfocus=popup=1;><imgabcdef
-<input onfocus=popup=1; formaction=x>abcdef
-<iframe onfocus=popup=1;><embed><sourceabcdef
-<svg onfocus=popup=1; srcset=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ formaction=import >abcdef
-<svg onfocus='popup=1;'onblur=x>abcdef
-<select onclick=popup=1;>abcdef
-<frameset onload=popup=1; formaction=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== ontoggle=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+>abcdef
-<button for="popup=1;"onfocus=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<iframe onload=popup=1; srcset=x>abcdef
-<svg onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<button onload="x"onclick=popup=1;><objectabcdef
-<svg onload=popup=1;>abcdef
-<video onload='import'src="x"onerror="popup=1;">abcdef
-<svg onfocus=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<embed onload=popup=1; onfocus='popup=1;'onerror=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== ><selectabcdef
-<iframe onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<object onfocus=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<svg onfocus="import"onload=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<embed onblur="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+"onfocus='popup=1;'><selectabcdef
-<input onclick='popup=1;'data=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== rel='data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+'>abcdef
-<frameset onclick=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ srcset=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onload='popup=1;'>abcdef
-<select onclick=popup=1;>abcdef
-<select onclick=popup=1;>abcdef
-<select onclick=popup=1;>abcdef
-<iframe autofocus=import onfocus='popup=1;'onload="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+"><buttonabcdef
-<iframe autofocus='data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=='onfocus=popup=1;>abcdef
-<frameset onclick=popup=1; onerror=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+><iframe formactionabcdef
-<svg onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<select onerror="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+"data=popup=1; onfocus=popup=1;>abcdef
-<link rel=import href=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==>abcdef
-<select onfocus=popup=1;>abcdef
-<iframe onerror='popup=1;'onload=popup=1; data='import'>abcdef
-<input onerror='x'onfocus=popup=1; autofocus='data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+'>abcdef
-<iframe onfocus=popup=1;>abcdef
-<button data=popup=1; id='x'onfocus=popup=1; >abcdef
-<object data="data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=="ontoggle=x onfocus=popup=1;>abcdef
-<input href='x'onclick=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onfocus=popup=1;>abcdef
-<embed href=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onfocus=popup=1;>abcdef
-<iframe srcset='data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=='onclick=import onfocus=popup=1; >abcdef
-<object onfocus=popup=1;>abcdef
-<svg onclick=popup=1;>abcdef
-<svg onclick=popup=1;>abcdef
-<embed onfocus=popup=1; rel=popup=1; for="x">abcdef
-<svg onerror="import"onfocus=popup=1;>abcdef
-<select onerror=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onfocus='popup=1;'onload="data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=="><sourceabcdef
-<frameset onerror='popup=1;'autofocus=x onload=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==>abcdef
-<frameset onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<iframe onload="x"autofocus='popup=1;'onfocus='popup=1;'>abcdef
-<svg onfocus=popup=1;>abcdef
-<svg onfocus=popup=1; id=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==>abcdef
-<select onerror=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ srcset=x onfocus=popup=1; >abcdef
-<embed formaction=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onfocus=popup=1;>abcdef
-<frameset onclick=popup=1;>abcdef
-<input rel="data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=="onfocus=popup=1;>abcdef
-<svg rel=x onload=popup=1; open="x">abcdef
-<button onblur="popup=1;"onfocus=popup=1; src=popup=1; >abcdef
-<iframe onerror=popup=1; srcset=x onfocus=popup=1; >abcdef
-<iframe onfocus='popup=1;'>abcdef
-<frameset onload=popup=1;>abcdef
-<embed onfocus='popup=1;'for=x onload="data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==">abcdef
-<object src=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onfocus='popup=1;'onerror=import >abcdef
-<form onclick=popup=1;><embed>abcdef
-<svg onclick='popup=1;'onchange=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==><optionabcdef
-<iframe onfocus=popup=1;>abcdef
-<object onchange=import onfocus=popup=1;>abcdef
-<input onchange='import'href='data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+'onfocus=popup=1; >abcdef
-<input srcset="data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=="data=popup=1; onfocus='popup=1;'>abcdef
-<svg onerror='import'onclick=popup=1;><svg>abcdef
-<input onclick=popup=1;>abcdef
-<select onclick=popup=1;>abcdef
-<button onclick='x'onfocus=popup=1;>abcdef
-<input onclick=popup=1; >abcdef
-<svg onclick="popup=1;"ontoggle='import'src='x'>abcdef
-<iframe src=import onfocus=popup=1;>abcdef
-<svg for='x'onload=popup=1;>abcdef
-<embed onfocus=popup=1;><imgabcdef
-<input onfocus=popup=1;><video/hrefabcdef
-<video onfocus="data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=="onclick=popup=1; autofocus="x">abcdef
-<input onfocus=popup=1;>abcdef
-<input onfocus=popup=1;>abcdef
-<button srcset=popup=1; onclick=popup=1;>abcdef
-<iframe srcset="x"onclick=popup=1; onload=popup=1; >abcdef
-<img srcset=popup=1; open="import"onerror=popup=1;>abcdef
-<input rel='popup=1;'onfocus=popup=1; formaction=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ ><input/abcdef
-<input onfocus=popup=1;><link>abcdef
-<canvas onclick='popup=1;'rel=import><canvasabcdef
-<input data=popup=1; href=popup=1; onclick=popup=1;><video>abcdef
-<embed onfocus=popup=1; onchange=popup=1; onerror=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+>abcdef
-<iframe rel="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+"onload=popup=1; onchange=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== >abcdef
-<iframe rel=import onfocus=popup=1; ontoggle="popup=1;"><embed>abcdef
-<canvas ontoggle='popup=1;'onclick=popup=1;>abcdef
-<select onclick="popup=1;"href='data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+'onfocus="x">abcdef
-<video onclick='popup=1;'rel=x id="x">abcdef
-<frameset onclick="x"onload=popup=1;>abcdef
-<video onclick="popup=1;"href=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+>abcdef
-<frameset id="x"onload=popup=1;>abcdef
-<embed onerror=popup=1; src=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onfocus=popup=1; ><inputabcdef
-<svg onerror="popup=1;"onload=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==>abcdef
-<frameset onerror='popup=1;'for=import onfocus=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+>abcdef
-<svg onerror="popup=1;"onfocus=import>abcdef
-<embed onerror=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onfocus=popup=1; id=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== ><svgabcdef
-<video onchange=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== href=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onclick=popup=1; >abcdef
-<object onfocus=popup=1;>abcdef
-<object onfocus=popup=1;>abcdef
-<button onfocus=popup=1; id=import>abcdef
-<object onfocus=popup=1;>abcdef
-<select onfocus=popup=1;>abcdef
-<select onfocus=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<video onclick=popup=1;>abcdef
-<object onfocus=popup=1;>abcdef
-<svg onerror="popup=1;"onchange="x"onfocus=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==>abcdef
-<object onfocus=popup=1;>abcdef
-<select onfocus=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<frameset srcset="x"onload="popup=1;"href=x >abcdef
-<object srcset=popup=1; onfocus=popup=1; id=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== >abcdef
-<input onblur="popup=1;"onfocus='popup=1;'><selectabcdef
-<iframe onfocus=popup=1;>abcdef
-<object onfocus=popup=1;>abcdef
-<embed onfocus=popup=1;><imgabcdef
-<embed onfocus=popup=1;><imgabcdef
-<iframe onfocus=popup=1;>abcdef
-<embed onfocus=popup=1;><imgabcdef
-<iframe onfocus=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<embed onfocus=popup=1;><bodyabcdef
-<select onfocus=popup=1;>abcdef
-<select onfocus=popup=1;>abcdef
-<object onfocus=popup=1;>abcdef
-<select onfocus=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<svg onfocus='popup=1;'data='import'onclick='data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=='>abcdef
-<button onfocus=popup=1;>abcdef
-<button onfocus=popup=1;>abcdef
-<object onfocus=popup=1;>abcdef
-<button onfocus=popup=1;>abcdef
-<input onfocus=popup=1; onblur=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+>abcdef
-<input onfocus='popup=1;'href=popup=1; onclick='data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+'>abcdef
-<frameset onfocus=x href='import'onload=popup=1;>abcdef
-<select onfocus=popup=1; autofocus=popup=1; onerror="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+">abcdef
-<iframe onfocus=popup=1;>abcdef
-<input onfocus='popup=1;'onerror=popup=1; src=popup=1;>abcdef
-<svg onfocus=popup=1;>abcdef
-<button onfocus=popup=1;>abcdef
-<embed onfocus="popup=1;"ontoggle=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== autofocus="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+">abcdef
-<svg onfocus=popup=1;>abcdef
-<svg onfocus=popup=1; onchange=import>abcdef
-<div onblur=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==><svg/src=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onfocus=popup=1;>abcdef
-<svg onblur=x onfocus=popup=1; open=x >abcdef
-<body onblur=x onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<svg onload=popup=1; onclick=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==>abcdef
-<frameset onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<link onload=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+><input onclick=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<object onload="import"onfocus='popup=1;'onerror='popup=1;'>abcdef
-<frameset onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<svg onload=popup=1; onfocus=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== autofocus=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+>abcdef
-<svg onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<button onload=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onfocus=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<iframe onload=popup=1; open=x>abcdef
-<iframe onload=popup=1;>abcdef
-<select onclick="popup=1;">abcdef
-<iframe onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<video onclick=popup=1;>abcdef
-<svg onerror=popup=1; onload=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== id=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+>abcdef
-<select srcset=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onchange='data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+'onfocus=popup=1;>abcdef
-<iframe formaction="import"onfocus=popup=1;><linkabcdef
-<object data=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onload='popup=1;'onfocus=popup=1; >abcdef
-<input onfocus="popup=1;">abcdef
-<object onfocus=popup=1;>abcdef
-<object onfocus=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<select onfocus="popup=1;"data=import rel=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+>abcdef
-<svg onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<object onfocus=popup=1;>abcdef
-<iframe onerror="import"rel=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onload=popup=1;>abcdef
+<button onfocus='popup=1;'ontoggle=x >abcdef
+<video onclick='popup=1;'data=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ >abcdef
 <object formaction="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+"onfocus=popup=1;>abcdef
+<input formaction=popup=1; onfocus=popup=1; >abcdef
+<select onload='popup=1;'onfocus="popup=1;"></select>abcdef
+<object data=import onerror=popup=1;>abcdef
+<iframe onfocus=popup=1; href="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+">abcdef
+<embed open='data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=='onfocus=popup=1;>abcdef
+<object onchange='x'onfocus=popup=1; >abcdef
+<input onfocus=popup=1;><svg>abcdef
+<button srcset=popup=1; onfocus=popup=1;><iframe rel=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+abcdef
+<frameset ontoggle=x onclick=popup=1;><embed>abcdef
+<embed onerror=popup=1; onfocus=popup=1; >abcdef
+<input src=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onfocus='popup=1;'>abcdef
+<svg for='data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+'onfocus=popup=1;><trackabcdef
+<img src=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onerror=popup=1;>abcdef
+<svg onfocus=popup=1;>abcdef
+<frameset onload='data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=='onclick=popup=1;>abcdef
+<link srcset=import data=x ><iframe/onfocus=popup=1; >abcdef
+<embed onfocus="popup=1;"onerror="data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==">abcdef
+<body onerror=popup=1; autofocus=import ><input/onclick=popup=1;>abcdef
+<svg onload=popup=1;>abcdef
+<embed onchange='data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+'onfocus=popup=1;><embedabcdef
+<frameset onload=popup=1;>abcdef
+<svg onload=popup=1;>abcdef
+<body onload=popup=1; srcset="popup=1;">abcdef
+<svg onload=popup=1;>abcdef
+<input onblur='import'onfocus="popup=1;">abcdef
+<body src=popup=1;><iframe/onload="popup=1;"data=x >abcdef
+<canvas onclick=popup=1;><input data=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+>abcdef
+<svg onfocus=popup=1;><frameset/onloadabcdef
+<input onclick=popup=1;><inputabcdef
+<video onclick=popup=1;>abcdef
+<select onfocus=popup=1; autofocus=x>abcdef
+<iframe onerror=popup=1; onload=popup=1; >abcdef
+<button ontoggle='x'onfocus=popup=1;>abcdef
+<button src="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+"onclick='popup=1;'><audio>abcdef
+<body onfocus=popup=1; onload=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef
+<input onchange=popup=1; onfocus='popup=1;'>abcdef
+<embed for="import"onfocus=popup=1; >abcdef
+<button data='x'onclick=popup=1; >abcdef
+<input onfocus=popup=1;>abcdef
+<svg onload=popup=1; onclick=popup=1;>abcdef
+<svg onload=popup=1;>abcdef
+<button onload="popup=1;"onclick=popup=1; >abcdef
+<svg onload=popup=1;>abcdef
+<frameset onload=popup=1;>abcdef
+<svg onload=popup=1;>abcdef
+<frameset onload=popup=1;>abcdef
 <select onclick=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef
+<svg onload=popup=1; href="x">abcdef
 <svg onload=popup=1;>abcdef
 <frameset onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<iframe onload=popup=1; onfocus=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+>abcdef
-<frameset onload=popup=1;>abcdef
-<embed onload=x onfocus=popup=1;>abcdef
-<frameset onload=popup=1; for=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ href=import >abcdef
-<svg onload=popup=1; ontoggle=import>abcdef
-<iframe onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<object onload="popup=1;"onfocus=popup=1;><input idabcdef
-<svg onload=popup=1;>abcdef
-<embed onfocus=popup=1;><imgabcdef
-<frameset onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<video onload=import onclick=popup=1; onblur="import"><formabcdef
-<svg onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<embed onfocus='popup=1;'><imgabcdef
-<iframe onload=popup=1;>abcdef
-<input onload=x id=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onfocus=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<body onload=popup=1; ontoggle=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<frameset onload=popup=1; onfocus=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== open=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<object onfocus=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<embed onload=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== srcset=import onfocus=popup=1; >abcdef
-<body onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<embed onfocus="popup=1;"onclick=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ data=popup=1;>abcdef
-<svg rel=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onfocus=popup=1; for=x><source/abcdef
-<input rel="popup=1;"onclick=popup=1;>abcdef
-<select onblur='data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+'onclick=popup=1;><videoabcdef
-<embed onblur="popup=1;"onfocus=popup=1; srcset='data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=='>abcdef
-<canvas onfocus=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onblur=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onclick=popup=1;><canvas relabcdef
-<input srcset=x href=x onclick=popup=1; >abcdef
-<svg onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<input onload='popup=1;'onclick=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<body onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<object rel='data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=='onfocus=popup=1;>abcdef
+<select href=import onclick=popup=1; >abcdef
+<frameset onclick='popup=1;'autofocus='popup=1;'><aabcdef
+<object onclick=popup=1; for=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== ><input>abcdef
+<object onfocus=popup=1; onload=popup=1;>abcdef
 <iframe onfocus=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<select onfocus=popup=1;>abcdef
-<object onfocus=popup=1;>abcdef
-<select onfocus=popup=1;>abcdef
-<object onfocus=popup=1;>abcdef
-<svg onfocus="import"onerror=popup=1; onchange=popup=1;>abcdef
+<svg onfocus='data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=='onerror=popup=1; ><bodyabcdef
+<svg formaction="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+"onload=popup=1; >abcdef
+<button ontoggle=popup=1; onfocus=popup=1; ><a/href='abcdef
+<body onload=popup=1;>abcdef
+<object ontoggle=x onfocus='popup=1;'>abcdef
+<frameset id='x'onload=popup=1; >abcdef
+<link src=import><embed/onerror=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onfocus=popup=1; >abcdef
+<frameset onload=popup=1;>abcdef
+<frameset onclick="popup=1;">abcdef
+<video onclick=popup=1; srcset="import">abcdef
+<iframe onfocus='popup=1;'for=x>abcdef
+<embed onfocus=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef
+<body onfocus='popup=1;'onclick=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+><input>abcdef
+<embed onfocus=popup=1;>abcdef
+<embed onfocus=popup=1;><iframe>abcdef
+<frameset onclick=popup=1; >abcdef
+<img onclick="popup=1;"src="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+"><video>abcdef
+<input onchange=x onclick=popup=1;>abcdef
+<iframe onload=popup=1; rel=x>abcdef
+<body open="x"onload=popup=1; >abcdef
+<embed onfocus="popup=1;"onload=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+><form srcabcdef
+<svg onfocus=popup=1; srcset=x><sourceabcdef
+<video onclick=popup=1; >abcdef
+<frameset onclick='popup=1;'>abcdef
+<canvas onclick='popup=1;'src='import'>abcdef
+<select ontoggle="import"onclick=popup=1;><object relabcdef
+<video onclick=popup=1;><embed/forabcdef
+<button onclick=popup=1; onfocus=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== >abcdef
+<input onclick=popup=1; onblur="import">abcdef
+<canvas onclick=popup=1; data="data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=="><button>abcdef
 <svg onload=popup=1;>abcdef
-<svg onblur=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onload="popup=1;"onerror=popup=1;>abcdef
-<body formaction='data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+'onload=popup=1; open='data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+'>abcdef
-<iframe onload=popup=1;>abcdef
-<iframe onload=popup=1;>abcdef
+<body onload=popup=1;>abcdef
+<frameset onload=popup=1;>abcdef
 <body onload=popup=1;>abcdef
 <svg onload=popup=1;>abcdef
-<svg onload=popup=1;>abcdef
-<frameset onload=popup=1;>abcdef
-<video onload='popup=1;'onclick='popup=1;'formaction=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ >abcdef
-<frameset onload=popup=1;>abcdef
 <body onload=popup=1;>abcdef
-<input formaction="data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=="onfocus="popup=1;"onerror=popup=1;>abcdef
-<embed onchange=import onfocus=popup=1; rel=popup=1;>abcdef
-<object onfocus=popup=1;>abcdef
-<input onclick=popup=1;>abcdef
-<frameset onclick=popup=1; open=x onfocus=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+>abcdef
-<input onclick=popup=1;>abcdef
-<input onclick=popup=1;>abcdef
-<input onclick=popup=1;>abcdef
-<input onclick=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<object onfocus=popup=1; onerror=import data=import>abcdef
-<select onfocus=popup=1;>abcdef
-<body onfocus=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== onload=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<object onfocus=popup=1;>abcdef
-<object onfocus=popup=1;>abcdef
-<select onclick=popup=1;></selectabcdef
-<input onclick=popup=1;>abcdef
-<input onclick=popup=1;>abcdef
-<source onclick=popup=1; ><frameset/onload=popup=1;>abcdef
-<input onclick=popup=1;>abcdef
-<input onclick=popup=1;>abcdef
-<body onclick=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+><object/onfocus=popup=1;>abcdef
-<button onclick='popup=1;'onblur=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==><svg>abcdef
-<select onclick="popup=1;">abcdef
-<embed onclick=popup=1; data=x onfocus=popup=1;>abcdef
-<frameset onclick=popup=1; srcset=x><iframe/data="data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==abcdef
-<canvas onclick=popup=1; onload=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==>abcdef
-<input onclick=popup=1;>abcdef
-<input onclick=popup=1;>abcdef
-<frameset onclick="popup=1;"onchange=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+>abcdef
-<input onclick=popup=1;>abcdef
-<select onclick=popup=1;>abcdef
-<frameset onclick=x data="import"onload=popup=1;>abcdef
-<iframe onfocus=popup=1;>abcdef
-<button onfocus=popup=1;>abcdef
-<button onfocus=popup=1;>abcdef
+<iframe onload=popup=1;>abcdef
+<button onerror='popup=1;'onfocus='popup=1;'>abcdef
+<canvas onclick="popup=1;"ontoggle="popup=1;">abcdef
+<svg onfocus="popup=1;"onerror=x >abcdef
+<iframe onload=popup=1;>abcdef
+<input for=x onclick=popup=1; ><embedabcdef
+<input onclick="x"onfocus=popup=1;><iframe openabcdef
+<video onclick=popup=1; for="popup=1;">abcdef
+<svg data='popup=1;'onload=popup=1; >abcdef
+<body onload=popup=1;>abcdef
+<body onload=popup=1;>abcdef
+<embed src=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onfocus=popup=1;>abcdef
+<svg onerror="popup=1;"onfocus=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ >abcdef
+<frameset onclick='popup=1;'>abcdef
+<button onclick=popup=1;>abcdef
+<embed src=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onfocus=popup=1;><selectabcdef
+<iframe onfocus='popup=1;'onclick='import'>abcdef
+<canvas formaction=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onclick=popup=1; ><iframe/onerrorabcdef
+<select src=popup=1; onfocus=popup=1; >abcdef
+<button srcset=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+><select/onfocus=popup=1;>abcdef
+<object ontoggle=popup=1; onfocus="popup=1;"><trackabcdef
+<iframe onfocus="popup=1;"open='x'><embed/formactionabcdef
+<frameset onblur=x onload='popup=1;'>abcdef
+<input onblur="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+"onfocus='popup=1;'><link/onchangeabcdef
+<button id=x onfocus=popup=1; >abcdef
+<object onfocus=popup=1;><pictureabcdef
+<embed onfocus=popup=1;>abcdef
+<input onclick="popup=1;"open='data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+'><button autofocusabcdef
+<iframe onload=popup=1;>abcdef
+<select onclick="popup=1;"formaction=popup=1;></selectabcdef
+<body onload=popup=1;>abcdef
+<body onload=popup=1;>abcdef
+<body onload=popup=1;>abcdef
+<body onload=popup=1;>abcdef
+<frameset onload=popup=1;>abcdef
+<iframe onload=popup=1;>abcdef
+<body onload=popup=1;>abcdef
+<iframe onload=popup=1; href="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+">abcdef
+<iframe onload=popup=1;>abcdef
+<button onload='data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=='onfocus=popup=1; ><objectabcdef
+<object id='import'onfocus=popup=1;>abcdef
+<frameset onload=popup=1;>abcdef
+<svg onload=popup=1;>abcdef
+<canvas autofocus="import"onclick=popup=1; >abcdef
+<frameset onload=popup=1; onblur="popup=1;">abcdef
+<embed for=import onfocus=popup=1;>abcdef
+<canvas id="x"onclick='popup=1;'>abcdef
+<button id=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onfocus=popup=1;>abcdef
 <input onfocus=popup=1;>abcdef
+<iframe onfocus=popup=1;>abcdef
 <input onfocus=popup=1;>abcdef
+<iframe onfocus=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef
+<input onerror=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onclick=popup=1; ><frameset/idabcdef
+<iframe onfocus=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef
+<iframe for="popup=1;"onfocus=popup=1;>abcdef
+<iframe onfocus=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef
+<button autofocus="x"onfocus=popup=1;>abcdef
+<frameset onclick=popup=1; >abcdef
+<embed href=x onfocus=popup=1;><linkabcdef
+<input onclick="popup=1;"onchange=x >abcdef
+<embed onfocus=popup=1;><embedabcdef
+<frameset onchange="data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=="onload=popup=1; >abcdef
+<frameset onload=popup=1;>abcdef
+<body onload=popup=1;>abcdef
+<iframe onload=popup=1;>abcdef
+<frameset onload=popup=1;>abcdef
+<iframe onload=popup=1;>abcdef
+<frameset onload='popup=1;'open=import >abcdef
+<iframe onload=popup=1;>abcdef
+<iframe onload=popup=1;>abcdef
+<frameset onload=popup=1;>abcdef
+<frameset onload=popup=1;>abcdef
+<svg onload=popup=1;>abcdef
+<iframe onload=popup=1;>abcdef
+<body onload=popup=1;>abcdef
+<svg href=import onfocus='popup=1;'>abcdef
+<track onchange="x"onfocus=popup=1;><body onload=popup=1;>abcdef
+<button srcset=popup=1; onclick=popup=1;><canvas/autofocusabcdef
+<button for=import onfocus=popup=1; >abcdef
+<embed onfocus=popup=1;>abcdef
+<picture open=import onclick='popup=1;'><canvas>abcdef
+<select src="data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+"onfocus=popup=1;>abcdef
+<input src=import onfocus=popup=1; >abcdef
+<iframe for='popup=1;'onload='popup=1;'>abcdef
+<a href=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== id="data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=="><select>abcdef
+<embed onfocus=popup=1;>abcdef
+<iframe onfocus=popup=1;>abcdef
+<svg onfocus=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef
+<svg onfocus=popup=1;>abcdef
+<svg onfocus=popup=1;>abcdef
+<input onfocus=popup=1;>abcdef
+<button onfocus=popup=1; autofocus="data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==">abcdef
 <button onfocus=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef
+<frameset rel="data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg=="onload=popup=1; >abcdef
+<embed onfocus=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef
+<select onfocus=popup=1;><linkabcdef
+<embed onfocus='popup=1;'onblur=x>abcdef
+<object onfocus='popup=1;'src=import><img onerrorabcdef
+<object onfocus=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef
+<input onfocus="popup=1;"id=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+>abcdef
+<iframe onfocus=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef
+<svg onfocus=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef
+<svg onfocus='popup=1;'onchange=x ><track/forabcdef
 <select onfocus=popup=1;>abcdef
-<input onfocus=popup=1;>abcdef
-<form onfocus=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onclick=popup=1;><input>abcdef
-<form autofocus=import><select onfocus=popup=1;>abcdef
-<form onclick='popup=1;'onload="x"ontoggle=x ><object>abcdef
-<form rel=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg== href=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onclick=popup=1; ><svg>abcdef
-<form onclick=popup=1;><object/open=popup=1;><audioabcdef
-<form rel=import onclick=popup=1;><video>abcdef
-<form src="popup=1;"onerror=data:text/html;base64,PHNjcmlwdD5wb3B1cD0xOzwvc2NyaXB0Pg==><embed/onfocus=popup=1;>abcdef
-<form for="import"onclick=popup=1; onload=popup=1;><canvas>abcdef
-<form rel=popup=1;><select ontoggle=x onfocus=popup=1;>abcdef
-<form rel="popup=1;"onclick=popup=1;><embed>abcdef
-<form onchange='import'onclick=popup=1;><object>abcdef
-<form onclick=popup=1; onerror="import"ontoggle=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+><input>abcdef
-<form formaction=popup=1; onclick=popup=1;><object>abcdef
-<form formaction=import><embed onfocus=popup=1;>abcdef
-<form onclick=popup=1;><body></abcdef
-<form onclick=popup=1; onfocus=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+><select/>abcdef
-<form onclick=popup=1; ><embed autofocus=import>abcdef
-<form href='x'onclick=popup=1;><select>abcdef
-<form onclick=popup=1;><iframe>abcdef
+<embed onfocus=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef
+<select onfocus=popup=1; onclick=popup=1; >abcdef
+<embed onfocus=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef
+<iframe onfocus=popup=1;>abcdef
+<iframe onfocus=popup=1;>abcdef
+<canvas onerror='data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+'onclick=popup=1;><svg>abcdef
+<body onfocus=data:svg/xml;base64,PHN2Zz48c2NyaXB0PnBvcHVwPTE7PC9zY3JpcHQ+PC9zdmc+ onclick=popup=1;><canvas/srcset=import>abcdef
+<embed onfocus=popup=1;>abcdef
+<iframe onfocus=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef
+<embed onfocus=popup=1;>abcdef

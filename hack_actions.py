@@ -62,7 +62,7 @@ class AttrParamAction(HackAction):
     dependent_dims = {'context': 'attr_param'}
 
     def is_valid(self, s):
-        good_to_go = True if 0 in [s['1_tag_' + str(i) + '_ap'] for i in range(1, 4)] else False
+        good_to_go = True if 0 in [s['1_tag_' + str(i) + '_ap'] for i in range(1, 3)] else False
         for feature_name, feature_value in s.items():
             if feature_name.endswith("_ap") and feature_value == self.string:
                 good_to_go = False
@@ -118,12 +118,12 @@ for i in DATA_VALUES:
 
 def get_open_tags(s):
     stack = []
-    for i in range(5, 0, -1):
+    for i in range(2, 0, -1):
         fname = str(i) + "_tag"
         fvalue = s[fname]
         if fvalue and fvalue not in SELF_CLOSING_TAGS:
             end_tag = False
-            for j in range(3, 1, -1):
+            for j in range(2, 0, -1):
                 param_fname = fname + "_" + str(j) + "_ap"
                 value_fname = fname + "_" + str(j) + "_av"
                 if s[param_fname] == "end" and s[value_fname] == 1:
@@ -144,7 +144,7 @@ class TagAction(HackAction):
     dependent_dims = {'context': 'tag_name'}
 
     def is_valid(self, s):  # To support closing tag only when there is an open tag with same name
-        good_to_go = True
+        good_to_go = True if 0 in [s[str(i) + '_tag'] for i in range(1, 3)] else False
         if s['context'] == 'end_tag_name':
             good_to_go = False
             if self.string in get_open_tags(s):  # Don't use self closing tags with </
@@ -152,7 +152,7 @@ class TagAction(HackAction):
         return(good_to_go and super(TagAction, self).is_valid(s))
 
 # TAGS = ('a', 'abbr', 'acronym', 'address', 'applet', 'embed', 'object', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'big', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'colgroup', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'ul', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'h1', 'h6', 'head', 'header', 'hr', 'html', 'i', 'iframe', 'img', 'input', 'ins', 'kbd', 'keygen', 'label', 'input', 'legend', 'fieldset', 'li', 'link', 'main', 'map', 'mark', 'menu', 'menuitem')
-TAGS = ('button', 'embed', 'object', 'body', 'canvas', 'div', 'embed', 'form', 'frameset', 'iframe', 'img', 'input', 'option', 'select', 'audio', 'video', 'source', 'track', 'svg', 'link', 'picture')
+TAGS = ('a', 'button', 'embed', 'object', 'body', 'canvas', 'embed', 'form', 'frameset', 'iframe', 'img', 'input', 'option', 'select', 'audio', 'video', 'source', 'track', 'svg', 'link', 'picture')
 # TAGS = ['body', 'figcaption', 'aside', 'dialog', 'main', 'figure', 'mark', 'menuitem', 'rt', 'footer', 'rp', 'meter', 'article', 'bdi', 'details', 'section', 'ruby', 'header', 'wbr', 'time', 'summary', 'progress', 'nav']
 # TAGS = ['div', 'input', 'img', 'audio', 'video', 'body', 'object']
 SELF_CLOSING_TAGS = ["area", "base", "br", "col", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"]
@@ -219,7 +219,7 @@ class LessThanControlAction(ControlAction):
     """
     def is_valid(self, s):
         good_to_go = True
-        if s['context'] in ['delim'] and s['5_tag'] != 0:  # If 5 tags are already there, no new tags
+        if s['context'] in ['data'] and s['2_tag'] != 0:  # If 2 tags are already there, no new tags
             good_to_go = False
         return(good_to_go and super(LessThanControlAction, self).is_valid(s))
 
@@ -291,5 +291,5 @@ class MouseKeyboardAction(object):
         return(good_to_go)
 
 for a in ['click', 'focus', 'keyboard']:
-    for i in range(1, 6):
+    for i in range(1, 3):
         ACTIONS.append(MouseKeyboardAction(i, action=a))
