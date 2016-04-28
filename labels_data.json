@@ -1,0 +1,90 @@
+[
+    {
+        "text": "username",
+        "label": "username"
+    },
+    {
+        "text": "your username",
+        "label": "username"
+    },
+    {
+        "text": "password",
+        "label": "password"
+    },
+    {
+        "text": "email",
+        "label": "email"
+    },
+    {
+        "text": "email address",
+        "label": "email"
+    },
+    {
+        "text": "1. email address",
+        "label": "email"
+    },
+    {
+        "text": "2. email address",
+        "label": "email"
+    },
+    {
+        "text": "mail address",
+        "label": "email"
+    },
+    {
+        "text": "mail",
+        "label": "email"
+    },
+    {
+        "text": "mobile",
+        "label": "mobile"
+    },
+    {
+        "text": "address",
+        "label": "address"
+    },
+    {
+        "text": "zip/pin code",
+        "label": "zipcode"
+    },
+    {
+        "text": "mobile number",
+        "label": "mobile"
+    },
+    {
+        "text": "re-enter password",
+        "label": "password"
+    },
+    {
+        "text": "password",
+        "label": "password"
+    },
+    {
+        "text": "first name",
+        "label": "username"
+    },
+    {
+        "text": "middle name",
+        "label": "username"
+    },
+    {
+        "text": "last name",
+        "label": "username"
+    },
+    {
+        "text": "address 1",
+        "label": "address"
+    },
+    {
+        "text": "city",
+        "label": "address"
+    },
+    {
+        "text": "contact phone number",
+        "label": "mobile"
+    },
+    {
+        "text": "zip/postal code",
+        "label": "zipcode"
+    }
+]

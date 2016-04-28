@@ -2,8 +2,9 @@ import copy
 import nltk
 import random
 import string
+import text2num
+import utilities
 
-from text2num import text2num
 from pattern.en import parsetree, pprint, singularize, wordnet
 
 def custom_similarity(word, synsets, pos=None):
@@ -18,7 +19,8 @@ def custom_similarity(word, synsets, pos=None):
             try:
                 similarities.append(wordnet.similarity(i, j))
             except Exception, e:
-                print(e)
+                pass
+                # print(e)
     return(max(similarities) if len(similarities) > 0 else 0)
 
 
@@ -42,7 +44,6 @@ def special_similarity(word):
         return(1.0)
     return(custom_similarity(word, [wordnet.synsets('special', pos=wordnet.ADJECTIVE)[1], wordnet.synsets('special', pos=wordnet.ADJECTIVE)[3]]))
 
-VECTOR = {"length": 0, "chars": []}
 
 def operate(old_chars, new_chars, op):
     if op.get() == 0:
@@ -62,13 +63,17 @@ class Operator(object):
     def set(self, v):
         self.op = v
 
-def help2vec(p):
+
+INPUT_VECTOR = {"length": 0, "chars": []}
+
+def input_help_to_vec(p):
     t = parsetree(p)
     requirements = []
+    # pprint(t)
     for sen in t:
         for i, chunk in enumerate(sen.chunks):
             if chunk.type == "NP":
-                vector = copy.deepcopy(VECTOR)
+                vector = copy.deepcopy(INPUT_VECTOR)
                 adjv_nn_bridge = []
                 op = Operator()  # 0 = and & 1 = or
                 ignore = False  # Useful when have DT like no etc..
@@ -78,7 +83,10 @@ def help2vec(p):
                             op.get()
                             vector["length"] = int(w.string)
                         except ValueError:
-                            vector["length"] = text2num(w.string)
+                            try:
+                                vector["length"] = text2num.text2num(w.string)
+                            except text2num.NumberException:
+                                pass
                     elif w.type == "CC":
                         ignore = False
                         if w.string.lower() == "and":
@@ -108,8 +116,11 @@ def help2vec(p):
                                 adjv_nn_bridge = operate(adjv_nn_bridge, [random.choice(list(string.uppercase))], op)
                             elif m_index == 2:
                                 adjv_nn_bridge = operate(adjv_nn_bridge, [random.choice(['!', '$'])], op)
+                                if vector["length"] == 0: vector["length"] = 1
+                        else:
+                            op.get()  # If there is a CC it gets cleaned because we couldn't identify the adjective
                     elif w.type.startswith("DT"):
-                        if w.string.startswith("no"):
+                        if w.string.lower().startswith("no"):
                             ignore = True
 
                 requirements.append(vector)
@@ -134,9 +145,34 @@ def help2vec(p):
         if l[i] == 1:
             i += 2
         else:
-            final.append(l[i])
+            if l[i]["length"] != 0 and len(l[i]["chars"]) > 0: final.append(l[i])
             i += 1
+    return(final)
 
+def input_vec_to_string(vectors):
+    payload = ''
+    if len(vectors) == 1 and vectors[0]["length"] > 0:
+        payload = ''.join(vectors[0]["chars"]) * (vectors[0]["length"]/len(vectors[0]["chars"]))
+    else:
+        length = 0
+        payload = ''
+        for i, v in enumerate(vectors):
+            if v["length"] > 1 and length == 0 and i == 0:
+                length = v["length"]
+            else:
+                payload += ''.join(v["chars"]) * (v["length"]/len(v["chars"]))
+        if length and len(payload) < length:
+            payload += ''.join([random.choice(list(string.lowercase)) for i in range(0, length - len(payload))])
+    return(''.join([utilities.get_alternate_char(c) for c in payload]))
+
+def form_help_to_vec(p):
+    t = parsetree(p)
+    requirements = []
+    pprint(t)
+    for sen in t:
+        for i, chunk in enumerate(sen.chunks):
+            if chunk.type == "NP":
+                requirements.append(vector)
     return(final)
 
 if __name__ == "__main__":
@@ -148,7 +184,8 @@ if __name__ == "__main__":
         "5 or 7 numbers",
         "5 numbers or 7 capitals",
         "5 numbers and 7 capitals",
-        "Cannot contain special characters"
+        "Cannot contain special characters",
+        "max 20 characters. no special characters"
     ]
     for p in texts:
         print(help2vec(p))

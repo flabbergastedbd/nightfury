@@ -1,6 +1,8 @@
+.DS_Store
 *.pyc
 ghostdriver.log
 nohup.out
 
 results
-
+command_cache/*
+states.*
