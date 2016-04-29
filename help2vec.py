@@ -44,6 +44,9 @@ def special_similarity(word):
         return(1.0)
     return(custom_similarity(word, [wordnet.synsets('special', pos=wordnet.ADJECTIVE)[1], wordnet.synsets('special', pos=wordnet.ADJECTIVE)[3]]))
 
+def mandatory_similarity(word):
+    return(custom_similarity(word, [wordnet.synsets('mandatory', pos=wordnet.ADJECTIVE)[0]]))
+
 
 def operate(old_chars, new_chars, op):
     if op.get() == 0:
@@ -69,9 +72,15 @@ INPUT_VECTOR = {"length": 0, "chars": []}
 def input_help_to_vec(p):
     t = parsetree(p)
     requirements = []
+    mandatory = False
     # pprint(t)
     for sen in t:
         for i, chunk in enumerate(sen.chunks):
+            if chunk.type == "ADJP":
+                vector = copy.deepcopy(INPUT_VECTOR)
+                for w in chunk.words:
+                    if w.type.startswith("JJ") and mandatory_similarity(w.string) > 0.9:
+                        mandatory = True
             if chunk.type == "NP":
                 vector = copy.deepcopy(INPUT_VECTOR)
                 adjv_nn_bridge = []
@@ -126,6 +135,7 @@ def input_help_to_vec(p):
                 requirements.append(vector)
 
 
+    if mandatory and len(requirements) == 0: requirements.append({"length": 1, "chars": ['x']})
     # Handling conjunctions at sentence level
     # Merging vectors based on 'and' and 'or' as of now
     l = []
@@ -168,7 +178,7 @@ def input_vec_to_string(vectors):
 def form_help_to_vec(p):
     t = parsetree(p)
     requirements = []
-    pprint(t)
+    # pprint(t)
     for sen in t:
         for i, chunk in enumerate(sen.chunks):
             if chunk.type == "NP":

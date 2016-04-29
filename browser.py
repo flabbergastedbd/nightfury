@@ -9,6 +9,7 @@ import numpy as np
 import networkx as nx
 import traceback
 import labels
+import logging
 
 from skimage.measure import compare_ssim as ssim
 from scipy.misc import imread
@@ -69,6 +70,13 @@ class DomElement(Base):
     @hybrid_property
     def vector(self):
         return(json.loads(self.vector_string) if self.vector_string else None)
+
+    @hybrid_property
+    def mandatory(self):
+        if (self.placeholder and '*' in self.placeholder) or self.vector_string:
+            return(True)
+        else:
+            return(False)
 
 
 class NBrowser(object):
@@ -170,10 +178,10 @@ class NBrowser(object):
             state = self._add_state(new_state_obj, elements)
             self.DG.add_node(state.id, url=state.url, absolute=state.absolute, seed=self.seed)
             self._current_state_id = state.id
-            print("[*] Adding new state as no existing matched (ID: %d Absolute: %s URL : %s)" % (state.id, state.absolute, state.url))
+            logging.info("Adding new state as no existing matched (ID: %d Absolute: %s URL : %s)" % (state.id, state.absolute, state.url))
         else:
             self._current_state_id = state.id
-            print("[*] State already found as %d" % (state.id))
+            logging.info("State already found as %d" % (state.id))
 
     def _add_state(self, new_state_obj, elements):
         self.session.add_all([new_state_obj] + elements)
@@ -250,13 +258,13 @@ class NBrowser(object):
         vec = help2vec.input_help_to_vec(lower_sen)
         enhanced = False
         if len(vec) > 0:  # Means it might be a help text. Now we have to link this with the corresponding input
-            print("[*] Following sentence was detected as input help")
-            print("[*] Sentence: %s" % (sen))
-            print("[*] Vector: %s" % (str(vec)))
+            logging.info("[*] Following sentence was detected as input help")
+            logging.info("[*] Sentence: %s" % (sen))
+            logging.info("[*] Vector: %s" % (str(vec)))
             e = utilities.match_help_to_element_NLP(elements, lower_sen)
             if e and not e.help:  # We found reference to a placeholder so fine.
-                print("[*] Found following element for input help by placeholder reference")
-                print("[*] Element: %s" % (str(e)))
+                logging.info("[*] Found following element for input help by placeholder reference")
+                logging.info("[*] Element: %s" % (str(e)))
                 e.help = sen
                 e.vector_string = json.dumps(vec)
                 self._update_elements(e)
@@ -267,8 +275,8 @@ class NBrowser(object):
                     if elem:
                         e = utilities.match_help_to_element_visually(elements, elem.location, elem.size)
                         if e and not e.help:  # We found reference to a placeholder so fine.
-                            print("[*] Found following element for input help by visual reference")
-                            print("[*] Element: %s" % (str(e)))
+                            logging.info("[*] Found following element for input help by visual reference")
+                            logging.info("[*] Element: %s" % (str(e)))
                             e.help = sen
                             e.vector_string = json.dumps(vec)
                             self._update_elements(e)
@@ -286,14 +294,17 @@ class NBrowser(object):
             + Visually relate the help text and input
         """
         if self.get_current_state().nlp_analysis == False:
+            logging.info("[*] Information will now be extracted from this state")
             for sen in self.get_current_state().text.splitlines():
                 elements = self.get_current_state().elements
                 self._enhance_element_info(sen, elements)
             current_state = self.get_current_state()
             current_state.nlp_analysis = True
             current_state = self._update_state(current_state)
+        else:
+            logging.info("[*] Information is already extracted from this state")
 
-    def fill_form(self, xpath="//*[@id=\"signup-form\"]", attempt=0):
+    def fill_form(self, xpath="//*[@id=\"registration_form\"]", attempt=0):
         if attempt < 3:
             elements = []
             form = None
@@ -304,8 +315,15 @@ class NBrowser(object):
                     break
             for e in elements:
                 d_e = self.d.find_element_by_xpath(e.xpath)
-                if e.type in ["checkbox", "radio"] and not d_e.is_selected():
+                if e.type == "checkbox" and e.mandatory:
                     d_e.click()
+                if e.type == "radio" and not d_e.is_selected():
+                    try:
+                        elem = self.d.find_element_by_css_selector("input[name='%s']:checked" % (e.name))
+                        e.value = ''
+                    except NoSuchElementException:
+                        d_e.click()
+                        e.value = d_e.get_attribute("value")
                 else:
                     payload = utilities.get_input_value(e, elements)
                     sibling_e = self.session.query(DomElement).filter_by(label=e.label).filter(DomElement.value != None).first()
@@ -314,7 +332,7 @@ class NBrowser(object):
                     d_e.send_keys(payload)
                     if not e.value and payload:
                         e.value = payload
-                        self._update_elements(e)
+                self._update_elements(e)
             if form:
                 self.d.find_element_by_xpath(form.xpath).submit()
                 if not self._form_fill_success(form):
@@ -323,29 +341,38 @@ class NBrowser(object):
         else:
             raise
 
-    def _form_fill_success(self, form):
+    def _form_fill_success(self, form, old_state_id=None):
         diff = self._get_dom_diff()
-        i = 0
+        new_lines_count = len(diff)
+        new_vector_count = 0
+        old_input_count = 0
         for line in diff:
             if self._enhance_element_info(line, form.children):
-                i += 1
-        if i > 0.8 * len(diff):
-            print("[*] Form fill failed")
+                new_vector_count += 1
+        for e in form.children:
+            try:
+                self.d.find_element_by_xpath(e.xpath)
+                old_input_count += 1
+            except NoSuchElementException, InvalidSelectorException:
+                continue
+        if i > 0.8 * len(diff) and old_input_count > 0.8 * len(form.children):
+            logging.info("[*] Form fill considered as fail")
             return(False)
         else:
-            print("[*] Form fill success")
+            logging.info("[*] Form fill considered as success")
             return(True)
 
 
 if __name__ == "__main__":
     try:
+        logging.basicConfig(level=logging.INFO)
         b = None
         b = NBrowser()
         # b.navigate_to_url('file:///Users/tunnelshade/Downloads/YodleeLabs-Registration.htm')
-        b.navigate_to_url('https://github.com/join')
+        b.navigate_to_url('https://moneycenter.yodlee.com/moneycenter/mfaregistration.moneycenter.do?_flowId=mfaregistration&c=csit_key%3AVZl14EfWF4rGSHQ1F6NEZWFU%2Bo8%3D&l=_flowId')
         b.save_state()
         b.enhance_state_info()
-        # b.fill_form()
+        b.fill_form()
         # import time
         # time.sleep(20)
     except KeyboardInterrupt:

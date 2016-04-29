@@ -78,8 +78,8 @@ def match_help_to_element_NLP(elements, text):
             words = filter(lambda x: (x.type.startswith('NN')), chunk.words)
             for w in words:
                 for p in placeholders:
-                    p = parsetree(p)
-                    p_words = [i.string for i in p.words]
+                    p_t = parsetree(p)
+                    p_words = [i.string for i in p_t.words]
                     if w.string.lower() in p_words:
                         return(placeholder_elements_dict[p])
     return(None)
@@ -148,3 +148,8 @@ def get_html5_input_type_payload(e):
     elif input_type == "email":
         payload = config.EMAIL_INPUT
     return(payload)
+
+def is_element_mandatory(placeholder):
+    if placeholder and '*' in placeholder:
+        return(True)
+    return(False)
