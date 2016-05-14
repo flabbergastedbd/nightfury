@@ -1,6 +1,7 @@
 import os
 import json
 import uuid
+import time
 import config
 import difflib
 import help2vec
@@ -11,6 +12,7 @@ import traceback
 import labels
 import logging
 
+from fuzzywuzzy import fuzz
 from skimage.measure import compare_ssim as ssim
 from scipy.misc import imread
 from selenium import webdriver
@@ -22,6 +24,8 @@ from sqlalchemy import Table, Column, Integer, String, Boolean,\
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from selenium.common.exceptions import InvalidSelectorException, NoSuchElementException
+from selenium.webdriver import ActionChains
+from selenium.webdriver.common.keys import Keys
 
 
 Base = declarative_base()
@@ -153,6 +157,7 @@ class NBrowser(object):
         return(None)
 
     def _construct_current_state(self):
+        print('[*] Constructing the current state as object')
         new_state_obj = DomState(
             dom=self.d.execute_script("return document.documentElement.outerHTML;"),
             text=self.d.find_element_by_tag_name('body').text,
@@ -161,6 +166,7 @@ class NBrowser(object):
             screenshot=os.path.join("command_cache", uuid.uuid4().hex[:7] + ".png"),
             seed=self.seed,
         )
+        print('[*] Completed constructing the current state as object')
         elements = self.get_current_elements()
         for e in elements:
             e.dom_state = new_state_obj
@@ -171,6 +177,7 @@ class NBrowser(object):
         At this point the current state points to previous state as browser just entered a new state
         Now we will save this if it is a previously undiscovered state.
         """
+        print("[*] Trying to save this state if this is previously undetected")
         new_state_obj, elements = self._construct_current_state()
         self.d.save_screenshot(new_state_obj.screenshot)
         state = self._check_if_duplicate_state(new_state_obj)
@@ -178,10 +185,10 @@ class NBrowser(object):
             state = self._add_state(new_state_obj, elements)
             self.DG.add_node(state.id, url=state.url, absolute=state.absolute, seed=self.seed)
             self._current_state_id = state.id
-            logging.info("Adding new state as no existing matched (ID: %d Absolute: %s URL : %s)" % (state.id, state.absolute, state.url))
+            print("[*] Adding new state as no existing matched (ID: %d Absolute: %s URL : %s)" % (state.id, state.absolute, state.url))
         else:
             self._current_state_id = state.id
-            logging.info("State already found as %d" % (state.id))
+            print("[*] State already found as %d" % (state.id))
 
     def _add_state(self, new_state_obj, elements):
         self.session.add_all([new_state_obj] + elements)
@@ -206,33 +213,41 @@ class NBrowser(object):
         self.d.quit()
 
     def get_current_elements(self):
+        print('[*] Getting current element objects')
         elements = []
+        # strings = utilities.get_strings(self.d)
+        # import pdb
+        # pdb.set_trace()
+        print('[*] Iterating over elements to create objects')
         for f in self.d.find_elements_by_tag_name('form'):
             temp_form_inputs = []
-            for i in f.find_elements_by_tag_name('input'):
+            for i in f.find_elements_by_tag_name('input') + f.find_elements_by_tag_name('select'):
                 if i.is_displayed():
-                    input_placeholder = utilities.get_placeholder(self.d, i)
-
-                    input_maxlength = i.get_attribute('maxlength')
-                    if input_maxlength: input_maxlength = int(input_maxlength)
-
-                    input_type = i.get_attribute("type")
-                    input_label = self._input_labeler.get_label(input_placeholder) if input_placeholder and input_type not in config.NON_TEXT_INPUT_TYPES else None
-                    temp_form_inputs.append(DomElement(
-                        tag="input",
-                        placeholder=input_placeholder,
+                    elem_obj = DomElement(
+                        tag=i.get_attribute('nodeName').lower(),
                         xpath=utilities.get_element_xpath(i),
                         help=None,
                         value=None,
-                        maxlength=input_maxlength,
-                        type=input_type,
+                        maxlength=int(i.get_attribute('maxlength')) if i.get_attribute('maxlength') else None,
+                        type=i.get_attribute('type'),
                         name=i.get_attribute('name'),
                         location_x=i.location["x"],
                         location_y=i.location["y"],
                         size_w=i.size["width"],
                         size_h=i.size["height"],
-                        label=input_label,
-                    ))
+                    )
+
+                    # Now get the placeholder and its label
+                    input_placeholder = utilities.get_placeholder(self.d, i)
+                    if input_placeholder:
+                        elem_obj.placeholder = input_placeholder
+                    # Label for placeholder
+                    if input_placeholder and elem_obj.type not in config.NON_TEXT_INPUT_TYPES:
+                        elem_obj.label = self._input_labeler.get_label(input_placeholder)
+
+                    # Add input obj
+                    temp_form_inputs.append(elem_obj)
+
             if len(temp_form_inputs) > 0:
                 elements.append(DomElement(
                     tag='form',
@@ -242,6 +257,7 @@ class NBrowser(object):
                     i.parent = elements[-1]
                 elements += temp_form_inputs
                 temp_form_inputs = []
+        print('[*] Elements gathered')
         return(elements)
 
     def _update_elements(self, e, state_id=None):
@@ -255,16 +271,20 @@ class NBrowser(object):
 
     def _enhance_element_info(self, sen, elements):
         lower_sen = sen.lower()
+        lower_placeholder_set_ratio = []
+        for i in elements:
+            if i.placeholder:
+                lower_placeholder_set_ratio.append(fuzz.token_set_ratio(i.placeholder.lower(), lower_sen))
         vec = help2vec.input_help_to_vec(lower_sen)
-        enhanced = False
+        enhanced = False or (len(lower_placeholder_set_ratio) > 0 and max(lower_placeholder_set_ratio) > 50)
         if len(vec) > 0:  # Means it might be a help text. Now we have to link this with the corresponding input
-            logging.info("[*] Following sentence was detected as input help")
-            logging.info("[*] Sentence: %s" % (sen))
-            logging.info("[*] Vector: %s" % (str(vec)))
+            print("[*] Following sentence was detected as input help")
+            print("[*] Sentence: %s" % (sen))
+            print("[*] Vector: %s" % (str(vec)))
             e = utilities.match_help_to_element_NLP(elements, lower_sen)
             if e and not e.help:  # We found reference to a placeholder so fine.
-                logging.info("[*] Found following element for input help by placeholder reference")
-                logging.info("[*] Element: %s" % (str(e)))
+                print("[*] Found following element for input help by placeholder reference")
+                print("[*] Element: %s" % (str(e)))
                 e.help = sen
                 e.vector_string = json.dumps(vec)
                 self._update_elements(e)
@@ -275,8 +295,8 @@ class NBrowser(object):
                     if elem:
                         e = utilities.match_help_to_element_visually(elements, elem.location, elem.size)
                         if e and not e.help:  # We found reference to a placeholder so fine.
-                            logging.info("[*] Found following element for input help by visual reference")
-                            logging.info("[*] Element: %s" % (str(e)))
+                            print("[*] Found following element for input help by visual reference")
+                            print("[*] Element: %s" % (str(e)))
                             e.help = sen
                             e.vector_string = json.dumps(vec)
                             self._update_elements(e)
@@ -294,7 +314,7 @@ class NBrowser(object):
             + Visually relate the help text and input
         """
         if self.get_current_state().nlp_analysis == False:
-            logging.info("[*] Information will now be extracted from this state")
+            print("[*] Information will now be extracted from this state")
             for sen in self.get_current_state().text.splitlines():
                 elements = self.get_current_state().elements
                 self._enhance_element_info(sen, elements)
@@ -302,44 +322,61 @@ class NBrowser(object):
             current_state.nlp_analysis = True
             current_state = self._update_state(current_state)
         else:
-            logging.info("[*] Information is already extracted from this state")
+            print("[*] Information is already extracted from this state")
 
-    def fill_form(self, xpath="//*[@id=\"registration_form\"]", attempt=0):
+    def fill_form(self, xpath='//*[@id="logon_form"]', attempt=0):
         if attempt < 3:
             elements = []
+            values = {}
             form = None
             for i in self.get_current_state().elements:
                 if i.xpath == xpath:
                     form = i
                     elements = i.children
                     break
-            for e in elements:
+            for e in elements + elements:  # Iterate twice
                 d_e = self.d.find_element_by_xpath(e.xpath)
-                if e.type == "checkbox" and e.mandatory:
+                payload = None
+                if e.tag == 'select':
+                    s = webdriver.support.ui.Select(d_e)
+                    payload = random.choice(s.options).get_attribute('value')
+                    s.select_by_value(payload)
+                elif e.type == "checkbox" and e.mandatory and d_e.is_selected():
                     d_e.click()
-                if e.type == "radio" and not d_e.is_selected():
+                elif e.type == "radio" and not d_e.is_selected():
                     try:
                         elem = self.d.find_element_by_css_selector("input[name='%s']:checked" % (e.name))
-                        e.value = ''
+                        payload = ''
                     except NoSuchElementException:
                         d_e.click()
-                        e.value = d_e.get_attribute("value")
+                        payload = d_e.get_attribute("value")
                 else:
-                    payload = utilities.get_input_value(e, elements)
+                    value = None
+                    same_e = self.session.query(DomElement).filter_by(placeholder=e.placeholder).filter(DomElement.value != None).first()
                     sibling_e = self.session.query(DomElement).filter_by(label=e.label).filter(DomElement.value != None).first()
-                    if not payload and sibling_e:
-                        payload = sibling_e.value
-                    d_e.send_keys(payload)
-                    if not e.value and payload:
-                        e.value = payload
-                self._update_elements(e)
+                    if same_e:
+                        value = same_e.value
+                    elif sibling_e:
+                        value = sibling_e.value
+                    else:
+                        value = utilities.get_input_value(e, elements)
+                    d_e.send_keys(Keys.COMMAND + 'a')
+                    d_e.send_keys(value)
+                    payload = value
+                if payload:
+                    e.value = payload
+                    self.session.merge(e)  # Commit only when success
+                time.sleep(1)
             if form:
                 self.d.find_element_by_xpath(form.xpath).submit()
                 if not self._form_fill_success(form):
                     self.navigate_to_state(self._current_state_id)
                     self.fill_form(xpath, attempt=attempt+1)
+                else:
+                    self.session.commit()
         else:
-            raise
+            print("[*] Form fill failed multiple times and leaving it. Humse na ho payi!!")
+            self.session.rollback()
 
     def _form_fill_success(self, form, old_state_id=None):
         diff = self._get_dom_diff()
@@ -355,26 +392,28 @@ class NBrowser(object):
                 old_input_count += 1
             except NoSuchElementException, InvalidSelectorException:
                 continue
-        if i > 0.8 * len(diff) and old_input_count > 0.8 * len(form.children):
-            logging.info("[*] Form fill considered as fail")
+        if old_input_count > 0.8 * len(form.children) or (new_lines_count > 0 and new_vector_count > 0.8 * new_lines_count):
+            print("[*] Form fill considered as fail")
             return(False)
         else:
-            logging.info("[*] Form fill considered as success")
+            print("[*] Form fill considered as success")
             return(True)
 
 
 if __name__ == "__main__":
     try:
-        logging.basicConfig(level=logging.INFO)
         b = None
         b = NBrowser()
         # b.navigate_to_url('file:///Users/tunnelshade/Downloads/YodleeLabs-Registration.htm')
-        b.navigate_to_url('https://moneycenter.yodlee.com/moneycenter/mfaregistration.moneycenter.do?_flowId=mfaregistration&c=csit_key%3AVZl14EfWF4rGSHQ1F6NEZWFU%2Bo8%3D&l=_flowId')
+        # b.navigate_to_url('https://moneycenter.yodlee.com/moneycenter/mfaregistration.moneycenter.do?_flowId=mfaregistration&c=csit_key%3AVZl14EfWF4rGSHQ1F6NEZWFU%2Bo8%3D&l=_flowId')
+        # b.navigate_to_url('http://clin.cmcvellore.ac.in/onlineIPO/Patdetails/Home.aspx')
+        # b.navigate_to_url('https://signup.ballparkapp.com/')
+        b.navigate_to_url('https://hujplpiqmu.ballparkapp.com/session/new')
         b.save_state()
         b.enhance_state_info()
         b.fill_form()
-        # import time
-        # time.sleep(20)
+        import time
+        time.sleep(20)
     except KeyboardInterrupt:
         pass
     except Exception, e:

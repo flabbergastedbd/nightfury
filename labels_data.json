@@ -16,6 +16,14 @@
         "label": "email"
     },
     {
+        "text": "email address or mobile number",
+        "label": "email"
+    },
+    {
+        "text": "re-enter email address or mobile number",
+        "label": "email"
+    },
+    {
         "text": "email address",
         "label": "email"
     },
@@ -60,18 +68,6 @@
         "label": "password"
     },
     {
-        "text": "first name",
-        "label": "username"
-    },
-    {
-        "text": "middle name",
-        "label": "username"
-    },
-    {
-        "text": "last name",
-        "label": "username"
-    },
-    {
         "text": "address 1",
         "label": "address"
     },
@@ -86,5 +82,17 @@
     {
         "text": "zip/postal code",
         "label": "zipcode"
+    },
+    {
+        "text": "date of birth",
+        "label": "date"
+    },
+    {
+        "text": "date of death",
+        "label": "date"
+    },
+    {
+        "text": "joining date",
+        "label": "date"
     }
 ]

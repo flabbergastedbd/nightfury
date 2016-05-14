@@ -38,18 +38,85 @@ def get_previous_siblings(elem):
         elems = []
     return(elems)
 
+def get_strings(driver):
+    strings = {}
+    for s in driver.find_element_by_tag_name('body').text.splitlines():
+        try:
+            elem = driver.find_element_by_xpath("//*[text()='%s']" % (s))
+            if elem.is_displayed():
+                strings[s] = elem
+        except NoSuchElementException:
+            pass
+    return(strings)
+
 def get_placeholder(driver, elem):
+    # import pdb
+    # pdb.set_trace()
     placeholder = None
+    """
+    for s, e in strings.items():
+        ax1, bx1 = e.location['x'], elem.location['x']
+        ax2, bx2 = ax1 + e.size['width'], bx1 + elem.size['width']
+        axl, bxl = e.size['width'], elem.size['width']
+        axc, bxc = (ax1 + ax2)/2, (bx1 + bx2)/2
+        ay1, by1 = e.location['y'], elem.location['y']
+        ay2, by2 = ay1 + e.size['height'], by1 + elem.size['height']
+        ayl, byl = e.size['height'], elem.size['height']
+        ayc, byc = (ay1 + ay2)/2, (by1 + by2)/2
+        # Check if area overlaps
+        plain_overlap_area = (max(0, min(ax2, bx2) - max(ax1, bx1))*max(0, min(ay2, by2) - max(ay1, by1)))
+        if plain_overlap_area and plain_overlap_area/(axl*ayl) == 1:
+            placeholder = s
+            break
+
+    if not placeholder:
+        for s, e in strings.items():
+            ax1, bx1 = e.location['x'], elem.location['x']
+            ax2, bx2 = ax1 + e.size['width'], bx1 + elem.size['width']
+            axl, bxl = e.size['width'], elem.size['width']
+            axc, bxc = (ax1 + ax2)/2, (bx1 + bx2)/2
+            ay1, by1 = e.location['y'], elem.location['y']
+            ay2, by2 = ay1 + e.size['height'], by1 + elem.size['height']
+            ayl, byl = e.size['height'], elem.size['height']
+            ayc, byc = (ay1 + ay2)/2, (by1 + by2)/2
+            if abs(ayc - byc) < 1.5*ayl and abs(axc - bxc) < 1.5*axl:  # Align on horizontal axis, so use y coordinates
+                placeholder = s
+                break
+    return(clean_html_tags(placeholder.strip('-: ')) if placeholder else None)
+    """
+    # Get placeholder attribute directly
     if elem.get_attribute("placeholder"):
         placeholder = elem.get_attribute("placeholder")
 
-    try:
-        if elem.get_attribute("id") and driver.find_element_by_xpath('//label[@for="%s"]' % (elem.get_attribute("id"))):
-            placeholder = driver.find_element_by_xpath('//label[@for="%s"]' % (elem.get_attribute("id"))).get_attribute("innerHTML")
-            placeholder = placeholder.strip('-: ')
-    except NoSuchElementException:
-        pass
-    return(clean_html_tags(placeholder) if placeholder else None)
+    # Get placeholder attribute directly
+    if not placeholder and elem.get_attribute("aria-label"):
+        placeholder = elem.get_attribute("aria-label")
+
+    # Try finding a label element
+    if not placeholder:
+        try:
+            if elem.get_attribute("id") and driver.find_element_by_xpath('//label[@for="%s"]' % (elem.get_attribute("id"))):
+                placeholder = driver.find_element_by_xpath('//label[@for="%s"]' % (elem.get_attribute("id"))).get_attribute("innerHTML")
+        except NoSuchElementException:
+            try:
+                if elem.get_attribute("name") and driver.find_element_by_xpath('//label[@for="%s"]' % (elem.get_attribute("name"))):
+                    placeholder = driver.find_element_by_xpath('//label[@for="%s"]' % (elem.get_attribute("name"))).get_attribute("innerHTML")
+            except NoSuchElementException:
+                pass
+
+    # Try finding a column previous to this
+    if not placeholder:
+        try:
+            parent_elem = get_parent_element(elem)
+            if parent_elem and parent_elem.get_attribute('nodeName').lower() == 'td':
+                parent_siblings = get_previous_siblings(parent_elem)
+                for i in reversed(parent_siblings):
+                    if not placeholder and len(i.text.strip('-: ')) > 0:
+                        placeholder = i.text
+                        break
+        except NoSuchElementException:
+            pass
+    return(clean_html_tags(placeholder.strip('-: ')) if placeholder else None)
 
 def clean_html_tags(text):
     text = re.sub(re.compile(r'<[^>]+?>', re.MULTILINE), '', text)
