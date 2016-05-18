@@ -12,4 +12,4 @@ ZIPCODE_INPUT = '56003'
 ADDRESS_INPUT = 'Australia'
 DATE_INPUT = '25/12/1993'
 TEXT_INPUT = ''.join([random.choice(list(string.lowercase)) for i in range(0, 7)])
-PASSWORD_INPUT = ''.join([random.choice(list(string.lowercase)) for i in range(0, 3)]) + random.choice(list(string.lowercase)) + '7!'
+PASSWORD_INPUT = ''.join([random.choice(list(string.lowercase)) for i in range(0, 3)]) + random.choice(list(string.uppercase)) + '7!'
