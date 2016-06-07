@@ -198,5 +198,6 @@ if __name__ == "__main__":
         "max 20 characters. no special characters"
     ]
     for p in texts:
-        print(help2vec(p))
+        print(p)
+        print(input_help_to_vec(p))
         print("\n")

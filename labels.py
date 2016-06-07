@@ -14,6 +14,14 @@ class InputLabeler(object):
             for i in json.load(fp):
                 self.labels_json[i['text']] = i['label']
 
+    def get_num_labels(self):
+        return(len(self.get_labels()))
+
+    def get_labels(self):
+        labels = self.labels_json.values()
+        labels.sort()
+        return(set(labels))
+
     def get_label(self, text):
         text = text.lower()
         # self.save_placeholder(text)

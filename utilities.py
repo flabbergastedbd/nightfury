@@ -185,7 +185,7 @@ def get_alternate_char(c):
 
 def get_input_value(e, all_e):
     payload = ''
-    if e.vector:
+    if e.help_vector:
         payload = help2vec.input_vec_to_string(e.vector)
     elif e.label:
         payload = labels.get_payload_for_label(e.label) or ''

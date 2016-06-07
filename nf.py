@@ -1,57 +1,66 @@
 import os
-import theano
-import lasagne
-import numpy as np
 import cPickle as pickle
+import numpy as np
 
-from theano import tensor as T
+import tensorflow as tf
 
-def get_batch(batch_size):
-    inputs = [[i] for i in np.random.randint(0, high=100000, size=batch_size)]
-    targets = [inputs[i][0] % 10 for i in range(0, batch_size)]
+n_input = 10
+n_hidden_1 = 20
+n_hidden_2 = 20
+n_classes = 10
+epochs = 3000
+batch_size = 100
+save_file = '/tmp/model.cpkt'
+
+def get_batch(batch_size, lower=0, upper=70000):
+    inputs = [np.random.normal(size=10) for i in range(0, batch_size)]
+    targets = np.zeros((batch_size, n_classes))
     return(inputs, targets)
 
-filename = "baruvulu"
+def build_mlp(_x, _weights, _biases):
+    layer_1 = tf.nn.sigmoid(tf.add(tf.matmul(_x, _weights['h1']), _biases['h1']))
+    layer_2 = tf.nn.sigmoid(tf.add(tf.matmul(layer_1, _weights['h2']), _biases['h2']))
+    return(tf.matmul(layer_2, _weights['out']) + _biases['out'])
 
-input_var = T.imatrix('inputs')
-target_var = T.ivector('targets')
+weights = {
+    'h1': tf.Variable(tf.random_normal([n_input, n_hidden_1])),
+    'h2': tf.Variable(tf.random_normal([n_hidden_1, n_hidden_2])),
+    'out': tf.Variable(tf.random_normal([n_hidden_2, n_classes]))
+}
 
-l1 = lasagne.layers.InputLayer(shape=(None, 1), input_var=input_var)
-l2 = lasagne.layers.DropoutLayer(l1, p=0.2)
-l3 = lasagne.layers.DenseLayer(l2, num_units=10, nonlinearity=lasagne.nonlinearities.sigmoid)
-l4 = lasagne.layers.DropoutLayer(l3, p=0.5)
-l5 = lasagne.layers.DenseLayer(l4, num_units=10, nonlinearity=lasagne.nonlinearities.sigmoid)
+biases = {
+    'h1': tf.Variable(tf.random_normal([n_hidden_1])),
+    'h2': tf.Variable(tf.random_normal([n_hidden_2])),
+    'out': tf.Variable(tf.random_normal([n_classes]))
+}
 
-prediction = lasagne.layers.get_output(l5)
-loss = lasagne.objectives.categorical_crossentropy(prediction, target_var).mean()
+x = tf.placeholder(tf.float32, [None, n_input])
+y = tf.placeholder(tf.float32, [None, n_classes])
 
-params = lasagne.layers.get_all_params(l5, trainable=True)
-updates = lasagne.updates.nesterov_momentum(loss, params, learning_rate=0.01)
+pred = build_mlp(x, weights, biases)
 
-train_fn = theano.function([input_var, target_var], loss, updates=updates)
+cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(pred, y))
+optimizer = tf.train.AdamOptimizer(learning_rate=0.01).minimize(cost)
 
-test_prediction = lasagne.layers.get_output(l5, deterministic=True)
-test_loss = lasagne.objectives.categorical_crossentropy(test_prediction, target_var).mean()
-test_acc = T.mean(T.eq(T.argmax(test_prediction, axis=1), target_var), dtype=theano.config.floatX)
+init = tf.initialize_all_variables()
 
-test_fn = theano.function([input_var, target_var], [test_loss, test_acc])
+saver = tf.train.Saver()
 
-if os.path.exists(filename):
-    with open(filename, "rb") as f:
-        data = pickle.load(f)
-        lasagne.layers.set_all_param_values(l5, data)
-
-for i in range(0, 500):
-    inputs, targets = get_batch(10000)
-    loss = train_fn(inputs, targets)
-    if i % 100 == 0: print(loss)
-
-for i in range(0, 10):
-    inputs, targets = get_batch(1)
-    loss, acc = test_fn(inputs, targets)
-    print(loss)
-    print(acc)
-    print("\n")
-
-with open(filename, "wb") as f:
-    pickle.dump(lasagne.layers.get_all_param_values(l5), f)
+with tf.Session() as sess:
+    if not os.path.exists(save_file):
+        sess.run(init)
+        for i in range(0, epochs):
+                inputs, targets = get_batch(batch_size)
+                sess.run(optimizer, feed_dict={x: inputs, y: targets})
+                avg_cost = sess.run(cost, feed_dict={x: inputs, y: targets})/batch_size
+                if i % 500 == 0:
+                    print(avg_cost)
+        saver.save(sess, save_file)
+    else:
+        saver.restore(sess, save_file)
+    inputs, targets = get_batch(10, lower=70000, upper=100000)
+    prediction = sess.run(pred, feed_dict={x: inputs, y: targets})
+    print(inputs)
+    print(np.argmax(targets, axis=1))
+    print(np.argmax(prediction, axis=1))
+    print('\n')

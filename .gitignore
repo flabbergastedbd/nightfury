@@ -6,3 +6,5 @@ nohup.out
 results
 command_cache/*
 states.*
+GNews.*
+word2vec.*
