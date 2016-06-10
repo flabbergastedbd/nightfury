@@ -8,3 +8,6 @@ command_cache/*
 states.*
 GNews.*
 word2vec.*
+*.model*
+*.pickle
+checkpoint

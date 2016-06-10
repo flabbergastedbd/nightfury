@@ -84,38 +84,41 @@ def get_placeholder(driver, elem):
                 break
     return(clean_html_tags(placeholder.strip('-: ')) if placeholder else None)
     """
-    # Get placeholder attribute directly
-    if elem.get_attribute("placeholder"):
-        placeholder = elem.get_attribute("placeholder")
+    if elem.get_attribute('nodeName').lower() == 'a':
+        placeholder = elem.text
+    else:
+        # Get placeholder attribute directly
+        if elem.get_attribute("placeholder"):
+            placeholder = elem.get_attribute("placeholder")
 
-    # Get placeholder attribute directly
-    if not placeholder and elem.get_attribute("aria-label"):
-        placeholder = elem.get_attribute("aria-label")
+        # Get placeholder attribute directly
+        if not placeholder and elem.get_attribute("aria-label"):
+            placeholder = elem.get_attribute("aria-label")
 
-    # Try finding a label element
-    if not placeholder:
-        try:
-            if elem.get_attribute("id") and driver.find_element_by_xpath('//label[@for="%s"]' % (elem.get_attribute("id"))):
-                placeholder = driver.find_element_by_xpath('//label[@for="%s"]' % (elem.get_attribute("id"))).get_attribute("innerHTML")
-        except NoSuchElementException:
+        # Try finding a label element
+        if not placeholder:
             try:
-                if elem.get_attribute("name") and driver.find_element_by_xpath('//label[@for="%s"]' % (elem.get_attribute("name"))):
-                    placeholder = driver.find_element_by_xpath('//label[@for="%s"]' % (elem.get_attribute("name"))).get_attribute("innerHTML")
+                if elem.get_attribute("id") and driver.find_element_by_xpath('//label[@for="%s"]' % (elem.get_attribute("id"))):
+                    placeholder = driver.find_element_by_xpath('//label[@for="%s"]' % (elem.get_attribute("id"))).get_attribute("innerHTML")
+            except NoSuchElementException:
+                try:
+                    if elem.get_attribute("name") and driver.find_element_by_xpath('//label[@for="%s"]' % (elem.get_attribute("name"))):
+                        placeholder = driver.find_element_by_xpath('//label[@for="%s"]' % (elem.get_attribute("name"))).get_attribute("innerHTML")
+                except NoSuchElementException:
+                    pass
+
+        # Try finding a column previous to this
+        if not placeholder:
+            try:
+                parent_elem = get_parent_element(elem)
+                if parent_elem and parent_elem.get_attribute('nodeName').lower() == 'td':
+                    parent_siblings = get_previous_siblings(parent_elem)
+                    for i in reversed(parent_siblings):
+                        if not placeholder and len(i.text.strip('-: ')) > 0:
+                            placeholder = i.text
+                            break
             except NoSuchElementException:
                 pass
-
-    # Try finding a column previous to this
-    if not placeholder:
-        try:
-            parent_elem = get_parent_element(elem)
-            if parent_elem and parent_elem.get_attribute('nodeName').lower() == 'td':
-                parent_siblings = get_previous_siblings(parent_elem)
-                for i in reversed(parent_siblings):
-                    if not placeholder and len(i.text.strip('-: ')) > 0:
-                        placeholder = i.text
-                        break
-        except NoSuchElementException:
-            pass
     return(clean_html_tags(placeholder.strip('-: ')) if placeholder else None)
 
 def clean_html_tags(text):

@@ -29,9 +29,15 @@ from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from selenium.common.exceptions import InvalidSelectorException, NoSuchElementException
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.keys import Keys
-
+from n_exceptions import *
+from IPython.core.debugger import Tracer
 
 Base = declarative_base()
+
+state_element_association_table = Table('state_element_association', Base.metadata,
+    Column('state_id', Integer, ForeignKey('dom_states.id')),
+    Column('element_id', Integer, ForeignKey('dom_elements.id'))
+)
 
 class DomState(Base):
     __tablename__ = "dom_states"
@@ -67,8 +73,10 @@ class DomElement(Base):
     size_w = Column(Integer)
     size_h = Column(Integer)
     parent = relationship("DomElement", backref="children", remote_side=[id])
-    dom_state_id = Column(Integer, ForeignKey("dom_states.id"))
-    dom_state = relationship("DomState", backref="elements")
+    interacted = Column(Boolean, default=False)
+    dom_states = relationship("DomState",
+        secondary=state_element_association_table,
+        backref="elements")
 
     def __str__(self):
         return("Tag: %s Placeholder: %s Label: %s Xpath: %s Location: (%d, %d) Size: %d width, %d height)" % (
@@ -100,6 +108,7 @@ class NBrowser(object):
         self._input_labeler = labels.InputLabeler()
 
         self._init_agent()
+        self._reset_action_history()
 
     def _init_logging(self):
         logger = logging.getLogger()
@@ -131,10 +140,14 @@ class NBrowser(object):
             self.DG = nx.DiGraph()
 
     def _init_agent(self):
-        form_dims = 3 * 5
-        link_dims = 5 * 3
-        label_dims = self._input_labeler.get_num_labels()
-        self.agent = agent.NAgent(n_state_dims=form_dims+link_dims+label_dims, n_actions=8)
+        self.FORM_DIM = 6
+        self.LINK_DIM = 4
+        self.LABEL_DIM = self._input_labeler.get_num_labels()
+        self.FORM_N = 2
+        self.LINK_N = 5
+        form_dims = self.FORM_N * self.FORM_DIM # No. of forms * Form vector dimension
+        link_dims = self.LINK_N * self.LINK_DIM # No. of links * Link vector dimension
+        self.agent = agent.NAgent(n_state_dims=form_dims+link_dims+self.LABEL_DIM, n_actions=self.FORM_N+self.LINK_N)
 
     def navigate_to_url(self, url):
         self.d.get(url)
@@ -179,6 +192,24 @@ class NBrowser(object):
                 return(old_state_obj)
         return(None)
 
+    def _check_if_duplicate_element(self, new_elem_obj):
+        """
+        This is going to be a big ass method to compare two states in lots of ways
+        """
+        query = self.session.query(DomElement).filter_by(tag=new_elem_obj.tag)
+        if new_elem_obj.placeholder:
+            query = query.filter_by(placeholder=new_elem_obj.placeholder)
+        elif new_elem_obj.tag == 'form':
+            query = query.filter_by(xpath=new_elem_obj.xpath)
+        else:
+            query = query.filter_by(
+                location_x=new_elem_obj.location_x,
+                location_y=new_elem_obj.location_y,
+                size_w=new_elem_obj.size_w,
+                size_h=new_elem_obj.size_h)
+        elem = query.first()
+        return(elem)
+
     def _construct_current_state(self):
         logging.debug('Constructing the current state as object')
         new_state_obj = DomState(
@@ -189,10 +220,16 @@ class NBrowser(object):
             screenshot=os.path.join("command_cache", uuid.uuid4().hex[:7] + ".png"),
             seed=self.seed,
         )
+        self.d.save_screenshot(new_state_obj.screenshot)
         logging.debug('Completed constructing the current state as object')
-        elements = self.get_current_elements()
-        for e in elements:
-            e.dom_state = new_state_obj
+        duplicate_state = self._check_if_duplicate_state(new_state_obj)
+        if duplicate_state:
+            elements = duplicate_state.elements
+            new_state_obj = duplicate_state
+        else:
+            elements = self.get_current_elements()
+            for e in elements:
+                e.dom_states.append(new_state_obj)
         return(new_state_obj, elements)
 
     def _construct_state_vector(self, state):
@@ -201,12 +238,16 @@ class NBrowser(object):
         labels = collections.OrderedDict()
         for e in state.elements:
             if e.tag == 'form':
-                phrases = []
+                placeholders = []
                 for c in e.children:
-                    if c.placeholder: phrases.append(c.placeholder)
-                if phrases: forms[e] = self.agent.d2v(phrases)
+                    if c.placeholder: placeholders.append(c.placeholder)
+                if placeholders:
+                    forms[e] = np.concatenate((self.agent.d2v(placeholders), [1.0 if e.interacted else 0.0]))
+                    logging.debug("%s ---- %s" % (e.xpath, str(forms[e])))
             elif e.tag == 'a':
-                if e.placeholder: links[e] = self.agent.w2v(e.placeholder)
+                if e.placeholder:
+                    links[e] = np.concatenate((self.agent.w2v(e.placeholder), [1.0 if e.interacted else 0.0]))
+                    logging.debug("%s ---- %s" % (e.placeholder, str(links[e])))
         for label in self._input_labeler.get_labels():
             if self.session.query(DomElement).filter_by(label=label).filter(DomElement.value != None).first():
                 labels[label] = 1.0
@@ -214,21 +255,21 @@ class NBrowser(object):
                 labels[label] = 0.0
         state_vector = np.array([])
         elements = []
-        for i in range(0, 3):
+        for i in range(0, self.FORM_N):
             try:
                 form = forms.items()[i]
                 state_vector = np.concatenate((state_vector, form[1]))
                 elements.append(form[0])
             except IndexError:
-                state_vector = np.concatenate((state_vector, np.zeros(5)))
+                state_vector = np.concatenate((state_vector, np.zeros(self.FORM_DIM)))
                 elements.append(None)
-        for i in range(0, 5):
+        for i in range(0, self.LINK_N):
             try:
                 link = links.items()[i]
                 state_vector = np.concatenate((state_vector, link[1]))
                 elements.append(link[0])
             except IndexError:
-                state_vector = np.concatenate((state_vector, np.zeros(3)))
+                state_vector = np.concatenate((state_vector, np.zeros(self.LINK_DIM)))
                 elements.append(None)
         state_vector = np.concatenate((state_vector, labels.values()))
         return(state_vector, elements)
@@ -239,20 +280,21 @@ class NBrowser(object):
         Now we will save this if it is a previously undiscovered state.
         """
         logging.debug("Trying to save this state if this is previously undetected")
-        new_state_obj, elements = self._construct_current_state()
-        self.d.save_screenshot(new_state_obj.screenshot)
-        state = self._check_if_duplicate_state(new_state_obj)
-        if state == None:
-            state = self._add_state(new_state_obj, elements)
+        state, elements = self._construct_current_state()
+        if state.id == None:
+            state = self._add_state(state, elements)
             self.DG.add_node(state.id, url=state.url, absolute=state.absolute, seed=self.seed)
             self._current_state_id = state.id
             logging.debug("Adding new state as no existing matched (ID: %d Absolute: %s URL : %s)" % (state.id, state.absolute, state.url))
+            return(True)
         else:
             self._current_state_id = state.id
             logging.debug("State already found as %d" % (state.id))
+            return(False)
 
     def _add_state(self, new_state_obj, elements):
-        self.session.add_all([new_state_obj] + elements)
+        for item in [new_state_obj] + elements:
+            self.session.merge(item) if item.id else self.session.add(item)
         self.session.commit()
         return(new_state_obj)
 
@@ -272,7 +314,7 @@ class NBrowser(object):
         nx.write_graphml(self.DG, path=self.GRAPH_PATH)
         self.session.close()
         self.d.quit()
-        if self.agent == False:
+        if self.agent:
             self.agent.close()
 
     def get_current_elements(self):
@@ -281,7 +323,7 @@ class NBrowser(object):
         # strings = utilities.get_strings(self.d)
         # import pdb
         # pdb.set_trace()
-        logging.debug('Iterating over elements to create objects')
+        logging.debug('Iterating over form and its elements to create objects')
         for f in self.d.find_elements_by_tag_name('form'):
             temp_form_inputs = []
             for i in f.find_elements_by_tag_name('input') + f.find_elements_by_tag_name('select'):
@@ -312,18 +354,42 @@ class NBrowser(object):
                     temp_form_inputs.append(elem_obj)
 
             if len(temp_form_inputs) > 0:
-                elements.append(DomElement(
+                temp_form_element = DomElement(
                     tag='form',
                     xpath=utilities.get_element_xpath(f),
-                ))
+                )
+                # Now add form and element objects after checking for duplicates
+                form_element = self._check_if_duplicate_element(temp_form_element)
+                elements.append(form_element) if form_element else elements.append(temp_form_element)
+                form_element = elements[-1]
                 for i in temp_form_inputs:
-                    i.parent = elements[-1]
-                elements += temp_form_inputs
+                    i.parent = form_element
+                    e = self._check_if_duplicate_element(i)
+                    elements.append(e) if e else elements.append(i)
                 temp_form_inputs = []
-        logging.debug('Elements gathered')
+        logging.debug('Iterating over links to create objects')
+        for i in self.d.find_elements_by_tag_name('a'):
+            if i.is_displayed():
+                elem_obj = DomElement(
+                    tag=i.get_attribute('nodeName').lower(),
+                    xpath=utilities.get_element_xpath(i),
+                    help=None,
+                    value=None,
+                    maxlength=int(i.get_attribute('maxlength')) if i.get_attribute('maxlength') else None,
+                    type=i.get_attribute('type'),
+                    name=i.get_attribute('name'),
+                    location_x=i.location["x"],
+                    location_y=i.location["y"],
+                    size_w=i.size["width"],
+                    size_h=i.size["height"],
+                    placeholder=utilities.get_placeholder(self.d, i),
+                )
+                duplicate_obj = self._check_if_duplicate_element(elem_obj)
+                elements.append(duplicate_obj) if duplicate_obj else elements.append(elem_obj)
+        logging.debug('%d Elements gathered' % (len(elements)))
         return(elements)
 
-    def _update_elements(self, e, state_id=None):
+    def _update_element(self, e, state_id=None):
         self.session.merge(e)
         self.session.commit()
 
@@ -350,7 +416,7 @@ class NBrowser(object):
                 logging.debug("Element: %s" % (str(e)))
                 e.help = sen
                 e.help_vector_string = json.dumps(vec)
-                self._update_elements(e)
+                self._update_element(e)
                 enhanced = True
             else: # We couldn't find reference to placeholder. So visual correlation
                 try:  # Check if element still exists
@@ -362,7 +428,7 @@ class NBrowser(object):
                             logging.debug("Element: %s" % (str(e)))
                             e.help = sen
                             e.help_vector_string = json.dumps(vec)
-                            self._update_elements(e)
+                            self._update_element(e)
                             enhanced = True
                 except InvalidSelectorException, NoSuchElementException:
                     pass
@@ -387,20 +453,64 @@ class NBrowser(object):
         else:
             logging.debug("Information is already extracted from this state")
 
+    def _reset_action_history(self):
+        logging.debug("Resetting action history as new state is detected")
+        self._action_history = []
+
+    def _add_action_history(self, element):
+        logging.debug("Adding element xpath to action history (%s)" %(element.xpath))
+        self._action_history.append(element.xpath)
+
     def ask_agent(self):
-        print(self._construct_state_vector(self.get_current_state()))
+        state = self.get_current_state()
+        state_vector, elements = self._construct_state_vector(state)
+        state_vector = state_vector.tolist()
+        if len(filter(lambda x: (x != None), elements)) == 0: raise NoElementsToInteract()
+        if len(filter(lambda x: (x and x.xpath not in self._action_history), elements)) == 0: raise NoNewElementsToInteract()
+        action_index = self.agent.get_action(state_vector, elements)
+        self.act_on(elements[action_index])
+        if self.save_state(): self.enhance_state_info()
+        reward = 10 if 'secret' in self.get_current_state().url else -1
+        new_state = self.get_current_state()
+        new_state_vector, new_elements = self._construct_state_vector(new_state)
+        new_state_vector = new_state_vector.tolist()
+        self.agent.integrate(state_vector, action_index, reward, new_state_vector)
 
+        # Add to action history to avoid struck
+        if state.id != new_state.id:
+            self._reset_action_history()
+        else:
+            self._add_action_history(elements[action_index])
 
-    def fill_form(self, xpath='//*[@id="logon_form"]', attempt=0):
+    def act_on(self, element):
+        # Save few values for reward calculation
+        if element.tag == 'form':
+            self.fill_form(element)
+        elif element.tag == 'a':
+            self.click_link(element)
+        time.sleep(2)
+
+    def click_link(self, element):
+        try:
+            logging.debug("Trying to click %s" % (str(element.placeholder)))
+            selenium_elem = self.d.find_element_by_xpath(element.xpath)
+            selenium_elem.click()
+            element.interacted = True
+            self._update_element(element)
+        except NoSuchElementException:
+            pass
+
+    def fill_form(self, f_elem, attempt=0):
+        elements = []
+        values = {}
+        form = None
+        for i in self.get_current_state().elements:
+            if i.xpath == f_elem.xpath:
+                form = i
+                elements = i.children
+                break
+        logging.debug("Trying to fill form %s" % (form.xpath))
         if attempt < 3:
-            elements = []
-            values = {}
-            form = None
-            for i in self.get_current_state().elements:
-                if i.xpath == xpath:
-                    form = i
-                    elements = i.children
-                    break
             for e in elements + elements:  # Iterate twice
                 d_e = self.d.find_element_by_xpath(e.xpath)
                 payload = None
@@ -417,6 +527,8 @@ class NBrowser(object):
                     except NoSuchElementException:
                         d_e.click()
                         payload = d_e.get_attribute("value")
+                elif e.type == "submit":
+                    pass
                 else:
                     value = None
                     same_e = self.session.query(DomElement).filter_by(placeholder=e.placeholder).filter(DomElement.value != None).first()
@@ -431,18 +543,22 @@ class NBrowser(object):
                     d_e.send_keys(value)
                     payload = value
                 if payload:
+                    logging.debug("%s = %s" % (str(e.placeholder), payload))
                     e.value = payload
                     self.session.merge(e)  # Commit only when success
                 time.sleep(1)
             if form:
+                form.interacted = True
+                self.session.merge(form)
                 self.d.find_element_by_xpath(form.xpath).submit()
+                time.sleep(1)
                 if not self._form_fill_success(form):
                     self.navigate_to_state(self._current_state_id)
-                    self.fill_form(xpath, attempt=attempt+1)
+                    self.fill_form(form, attempt=attempt+1)
                 else:
                     self.session.commit()
         else:
-            logging.debu("Form fill failed multiple times and leaving it. Humse na ho payi!!")
+            logging.debug("Form fill failed multiple times and leaving it. Humse na ho payi!!")
             self.session.rollback()
 
     def _form_fill_success(self, form, old_state_id=None):
@@ -474,13 +590,26 @@ if __name__ == "__main__":
         # b.navigate_to_url('file:///Users/tunnelshade/Downloads/YodleeLabs-Registration.htm')
         # b.navigate_to_url('https://moneycenter.yodlee.com/moneycenter/mfaregistration.moneycenter.do?_flowId=mfaregistration&c=csit_key%3AVZl14EfWF4rGSHQ1F6NEZWFU%2Bo8%3D&l=_flowId')
         # b.navigate_to_url('http://clin.cmcvellore.ac.in/onlineIPO/Patdetails/Home.aspx')
-        b.navigate_to_url('https://signup.ballparkapp.com/')
+        # b.navigate_to_url('https://signup.ballparkapp.com/')
         # b.navigate_to_url('https://hujplpiqmu.ballparkapp.com/session/new')
         # b.navigate_to_url('https://twitter.com/signup')
+        b.navigate_to_url('http://127.0.0.1:8888')
         b.save_state()
         b.enhance_state_info()
-        b.ask_agent()
-        # b.fill_form()
+        for i in range(0, 50):
+            try:
+                b.ask_agent()
+            except NoElementsToInteract:
+                logging.debug("No elements to interact hence going back to homepage")
+                b.navigate_to_url('http://127.0.0.1:8888')
+                b.save_state()
+                time.sleep(1)
+            except NoNewElementsToInteract:
+                logging.debug("No new elements to interact hence going back to homepage")
+                b.navigate_to_url('http://127.0.0.1:8888')
+                b.save_state()
+                time.sleep(1)
+        # Tracer()()
     except KeyboardInterrupt:
         pass
     except Exception, e:

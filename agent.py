@@ -8,6 +8,7 @@ import numpy as np
 import logging
 import cPickle as pickle
 
+from collections import OrderedDict
 from pattern.en import parsetree, pprint, singularize, wordnet
 from gensim.models import Word2Vec, word2vec, Doc2Vec, doc2vec
 from sqlalchemy import create_engine
@@ -42,6 +43,7 @@ class NAgent(object):
     WORD2VEC_JSON = 'word2vec.json'
     DOC2VEC_MODEL = 'doc2vec.model'
     DOC2VEC_DATA = 'doc2vec.pickle'
+    EXPERIENCES_DATA = 'experiences.pickle'
     def __init__(self, alpha=0.1, gamma=0.9, epsilon=0.3, constant_scaling=0.7, n_state_dims=35, n_actions=10):
         self.alpha = alpha
         self.gamma = gamma
@@ -49,10 +51,17 @@ class NAgent(object):
         self.constant_scaling = constant_scaling
         self.n_state_dims = n_state_dims
         self.n_actions = n_actions
-        self.experiences = []
         self.__init_sqlalchemy_session()
         self.__init_nn()
+        self.__init_experiences()
         self._load_d2v()
+
+    def __init_experiences(self):
+        if os.path.exists(self.EXPERIENCES_DATA):
+            with open(self.EXPERIENCES_DATA, 'rb') as f:
+                self.experiences = pickle.load(f)
+        else:
+            self.experiences = OrderedDict()
 
     def __init_nn(self):
         self.nn = NeuralNetwork(self.n_state_dims, 40, 40, self.n_actions)
@@ -74,8 +83,8 @@ class NAgent(object):
 
     def _load_d2v(self):
         sens = self._unpickle_doc()
-        data = [doc2vec.LabeledSentence(words=words, tags=["SENT_%d" % i]) for i, words in enumerate(sens)]
         if sens:
+            data = [doc2vec.LabeledSentence(words=words, tags=["SENT_%d" % i]) for i, words in enumerate(sens)]
             self._d2v = Doc2Vec(data, size=5, min_count=1)
         else:
             self._d2v = Doc2Vec(size=5, min_count=1)
@@ -88,8 +97,8 @@ class NAgent(object):
         for s in t:
             for chunk in s.chunks:
                 if chunk.type == 'NP':
-                    for word in chunk.words:
-                        if word.type == "CD":
+                    for w in chunk.words:
+                        if w.type == "CD":
                             try:
                                 int(w.string)
                                 words.append(w.string)
@@ -98,19 +107,19 @@ class NAgent(object):
                                     words.append(text2num.text2num(w.string))
                                 except text2num.NumberException:
                                     pass
-                        elif word.type == "NN":
-                            words.append(word.string.lower())
+                        elif w.type == "NN":
+                            words.append(w.string.lower())
         return(words)
 
     def w2v(self, phrase):
         words = self._get_words(phrase)
         vector = [0.0, 0.0, 0.0]
-        logging.debug("[*] %s --> %s" % (phrase, str(words)))
+        logging.debug("Extracted %d words from %s --> %s" % (len(words), phrase, str(words)))
         if words:
             vec_objs = self.session.query(Word2Vec).filter(Word2Vec.word.in_(words)).all()
             for obj in vec_objs:
                 vector = np.add(vector, obj.vector)
-            logging.debug("[*] Vector averged by %d" % (len(vec_objs)))
+            logging.debug("Vector averaged by %d" % (len(vec_objs)))
             if len(vec_objs): vector = np.divide(vector, len(vec_objs))
         return(vector)
 
@@ -137,37 +146,46 @@ class NAgent(object):
                     pass
         return(data)
 
-    def d2v(self, phrases):
+    def d2v(self, placeholders):
         tokens = []
-        for phrase in phrases:
-            tokens += self._get_words(phrase)
+        for p in placeholders:
+            tokens += self._get_words(p)
+        logging.debug("Extracted following tokens for Doc2Vec")
+        logging.debug(str(tokens))
         self._pickle_doc(tokens)
         return(self._d2v.infer_vector(tokens))
 
-    def interact(self, state_vector, execute_action_on, i=None):
+    def get_action(self, state_vector, elements):
         adv_values = self.nn.predict([state_vector])[0]
-        if np.random.random_sample() < self.e:
-            i = np.argmax(adv_values)
+        filtered_indexes = []
+        filtered_adv_values = []
+        for j, e in enumerate(elements):
+            if e:
+                filtered_indexes.append(j)
+                filtered_adv_values.append(adv_values[j])
+        if np.random.random_sample() < self.epsilon:
+            logging.debug("Selecting profitable action")
+            i = filtered_indexes[np.argmax(filtered_adv_values)]
         else:
-            i = np.random.choice(range(0, len(actions)))
-        action = actions[i]
-        reward, new_state_vector = execute_action_on(action)
-        new_adv_values = self.nn.predict([new_state_vector])[0]
+            logging.debug("Selecting random action")
+            i = np.random.choice(filtered_indexes)
+        return(i)
+
+    def integrate(self, state_vector, action, reward, new_state_vector):
+        adv_values = self.nn.predict(np.array([state_vector]))[0]
+        new_adv_values = self.nn.predict(np.array([new_state_vector]))[0]
         td_error = self.__td_error(
             adv_values[action],
             np.amax(adv_values),
             reward,
             np.amax(new_adv_values)
         )
-        adv_values[actions.index(action)] += td_error
-        self.nn.train([state_vector], [adv_values])
-        for i, e in enumerate(self.experiences):
-            if td_error < e[-1]:
-                break
-            elif i == len(self.experiences) - 1:
-                i += 1
-                break
-        self.experiences.insert(i, [state_vector, action, reward, new_state_vector, td_error])
+        adv_values[action] += td_error
+        self.nn.train(np.array([state_vector]), np.array([adv_values]))
+        # Insert the experience at right place
+        self.experiences[tuple([tuple(state_vector), action, reward, tuple(new_state_vector)])] = td_error
+        self.experiences = OrderedDict(sorted(self.experiences.items(), key=lambda x: x[1]))
+        return(td_error)
 
     def __td_error(self, a, max_a, reward, max_new_a):
         return(max_a + ((reward + self.gamma*max_new_a - max_a)/self.constant_scaling) - a)
@@ -176,11 +194,20 @@ class NAgent(object):
         """
         This is prioritized replay using td error
         """
-        e = self.experiences.pop()
-        self.interact(e[0], lambda x: (e[2], e[3]), i=e[1])
+        e = self.experiences.popitem()
+        if e[1] > 0:
+            new_td_error = self.integrate(*e[0])
+            logging.debug("Replay changed td error from %f to %f" % (e[1], new_td_error))
+        else:
+            logging.debug("Skipping replay as TD Error <= 0")
 
     def close(self):
+        # Save experiences json
+        with open(self.EXPERIENCES_DATA, 'wb') as f:
+            pickle.dump(self.experiences, f)
+        # Save D2V docs for next time training
         self._d2v.save(self.DOC2VEC_MODEL)
+        # Close neural network so it saves it weights
         self.nn.close()
 
 
