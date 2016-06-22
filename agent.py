@@ -68,7 +68,7 @@ class NAgent(object):
             self.experiences = OrderedDict()
 
     def __init_nn(self):
-        self.nn = NeuralNetwork(self.n_state_dims, 40, 40, self.n_actions)
+        self.nn = NeuralNetwork(self.n_state_dims, 100, 100, self.n_actions)
 
     def __init_sqlalchemy_session(self):
         self.engine = create_engine("sqlite:///" + self.WORD2VEC_DB)
@@ -118,13 +118,12 @@ class NAgent(object):
     def w2v(self, phrase):
         words = self._get_words(phrase)
         vector = [0.0, 0.0, 0.0]
-        logging.debug("Extracted %d words from %s --> %s" % (len(words), phrase, str(words)))
         if words:
             vec_objs = self.session.query(Word2Vec).filter(Word2Vec.word.in_(words)).all()
             for obj in vec_objs:
                 vector = np.add(vector, obj.vector)
-            logging.debug("Vector averaged by %d" % (len(vec_objs)))
             if len(vec_objs): vector = np.divide(vector, len(vec_objs))
+        logging.debug("%s ---> %s ---> %s" % (phrase, str(words), str(vector)))
         return(vector)
 
     def _pickle_doc(self, tokens):
@@ -154,11 +153,10 @@ class NAgent(object):
         tokens = []
         for p in placeholders:
             tokens += self._get_words(p)
-        logging.debug("Extracted following tokens for Doc2Vec")
-        logging.debug(str(tokens))
         self._pickle_doc(tokens)
         try: # If no samples are trained
             vector = self._d2v.infer_vector(tokens)
+            logging.debug("%s ---> %s ---> %s" % (str(placeholders), str(tokens), str(vector)))
         except AttributeError:
             logging.debug("Attribute error when infering Doc2Vec vector")
             vector = None
@@ -168,16 +166,23 @@ class NAgent(object):
         adv_values = self.nn.predict([state_vector])[0]
         filtered_indexes = []
         filtered_adv_values = []
+        filtered_exploratory_indexes = []
         for j, e in enumerate(elements):
             if e:
                 filtered_indexes.append(j)
                 filtered_adv_values.append(adv_values[j])
+                if e.interacted == False:  # When exploration, preferance to untouched stuff
+                    filtered_exploratory_indexes.append(j)
         if np.random.random_sample() < self.epsilon:
-            logging.debug("Selecting profitable action")
+            logging.info("Selecting profitable action")
             i = filtered_indexes[np.argmax(filtered_adv_values)]
         else:
-            logging.debug("Selecting random action")
-            i = np.random.choice(filtered_indexes)
+            if len(filtered_exploratory_indexes) > 0:
+                logging.info("Selecting randomly from non interacted elements")
+                i = np.random.choice(filtered_exploratory_indexes)
+            else:
+                logging.info("Selecting randomly from all elements since everything seems already interacted")
+                i = np.random.choice(filtered_indexes)
         return(i)
 
     def integrate(self, state_vector, action, reward, new_state_vector):

@@ -1,8 +1,10 @@
 import os
+import sys
 import json
 import uuid
 import time
 import config
+import random
 import difflib
 import help2vec
 import utilities
@@ -15,8 +17,6 @@ import logging
 import collections
 
 from fuzzywuzzy import fuzz
-from skimage.measure import compare_ssim as ssim
-from scipy.misc import imread
 from selenium import webdriver
 from selenium.webdriver.remote.remote_connection import LOGGER
 from sqlalchemy import create_engine
@@ -35,8 +35,8 @@ from IPython.core.debugger import Tracer
 Base = declarative_base()
 
 state_element_association_table = Table('state_element_association', Base.metadata,
-    Column('state_id', Integer, ForeignKey('dom_states.id')),
-    Column('element_id', Integer, ForeignKey('dom_elements.id'))
+    Column('state_id', Integer, ForeignKey('dom_states.id', ondelete="CASCADE")),
+    Column('element_id', Integer, ForeignKey('dom_elements.id', ondelete="CASCADE"))
 )
 
 class DomState(Base):
@@ -49,7 +49,7 @@ class DomState(Base):
     absolute = Column(Boolean, default=False)
     nlp_analysis = Column(Boolean, default=False)
     screenshot = Column(String)
-    ssim_minimum = Column(Float, default=0.95)
+    ssim_minimum = Column(Float, default=0.99)
 
     def __str__(self):
         return("ID: %d ABSOLUTE: %s URL: %s" % (self.id, self.absolute, self.url))
@@ -108,26 +108,34 @@ class NBrowser(object):
         self._input_labeler = labels.InputLabeler()
 
         self._init_agent()
-        self._reset_action_history()
+        self.reset()
 
     def _init_logging(self):
         logger = logging.getLogger()
-        handler = logging.StreamHandler()
         formatter = logging.Formatter(
             "[%(asctime)s] [%(levelname)8s] --- %(message)s (%(filename)s:%(lineno)s)",
             "%H:%M")
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
         logger.setLevel(logging.DEBUG)
+
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        handler.setLevel(logging.INFO)
+        logger.addHandler(handler)
+
+        file_handler = logging.FileHandler('/tmp/nightfury.log')
+        file_handler.setFormatter(formatter)
+        file_handler.setLevel(logging.DEBUG)
+        logger.addHandler(file_handler)
 
     def _init_selenium_driver(self):
         LOGGER.setLevel(logging.WARNING)
         self.d = webdriver.Firefox()
-        self.d.implicitly_wait(1)
+        # self.d.implicitly_wait(1)
         self.d.set_window_size(config.BROWSER_WIDTH, config.BROWSER_HEIGHT)
 
     def _init_sqlalchemy_session(self):
-        self.engine = create_engine("sqlite:///" + self.DB_PATH)
+        # self.engine = create_engine("sqlite:///" + self.DB_PATH)
+        self.engine = create_engine("postgresql+psycopg2://nightfury:nightfury@127.0.0.1:5432/states")
         Base.metadata.create_all(self.engine)
         self.session_factory = sessionmaker(bind=self.engine)
         self.scoped_factory = scoped_session(self.session_factory)
@@ -144,13 +152,14 @@ class NBrowser(object):
         self.LINK_DIM = 4
         self.LABEL_DIM = self._input_labeler.get_num_labels()
         self.FORM_N = 2
-        self.LINK_N = 5
+        self.LINK_N = 20
         form_dims = self.FORM_N * self.FORM_DIM # No. of forms * Form vector dimension
         link_dims = self.LINK_N * self.LINK_DIM # No. of links * Link vector dimension
         self.agent = agent.NAgent(n_state_dims=form_dims+link_dims+self.LABEL_DIM, n_actions=self.FORM_N+self.LINK_N)
 
     def navigate_to_url(self, url):
         self.d.get(url)
+        self.save_state()
 
     def navigate_to_state(self, state_id):
         state_obj = self.session.query(DomState).get(state_id)
@@ -186,7 +195,9 @@ class NBrowser(object):
             # Lots of IF-Else conditions in order
             if old_state_obj.url != new_state_obj.url:
                 match = False
-            if self._image_ssim(old_state_obj.screenshot, new_state_obj.screenshot) > old_state_obj.ssim_minimum:
+            ssim = utilities.image_ssim(old_state_obj.screenshot, new_state_obj.screenshot)
+            if ssim > old_state_obj.ssim_minimum:
+                logging.debug("State matched using SSIM of %f (%s, %s)" % (ssim, old_state_obj.screenshot, new_state_obj.screenshot))
                 match = True
             if match == True:
                 return(old_state_obj)
@@ -194,43 +205,51 @@ class NBrowser(object):
 
     def _check_if_duplicate_element(self, new_elem_obj):
         """
-        This is going to be a big ass method to compare two states in lots of ways
+        This is going to be a big ass method to compare two elements in lots of ways
         """
-        query = self.session.query(DomElement).filter_by(tag=new_elem_obj.tag)
-        if new_elem_obj.placeholder:
-            query = query.filter_by(placeholder=new_elem_obj.placeholder)
-        elif new_elem_obj.tag == 'form':
-            query = query.filter_by(xpath=new_elem_obj.xpath)
-        else:
-            query = query.filter_by(
-                location_x=new_elem_obj.location_x,
-                location_y=new_elem_obj.location_y,
-                size_w=new_elem_obj.size_w,
-                size_h=new_elem_obj.size_h)
-        elem = query.first()
+        elem = None
+        if self.session.query(DomElement).count() > 0:
+            query = self.session.query(DomElement)
+            if new_elem_obj.placeholder:
+                query = query.filter_by(tag=new_elem_obj.tag, placeholder=new_elem_obj.placeholder)
+            elif new_elem_obj.tag == 'form':
+                query = query.filter_by(tag=new_elem_obj.tag, xpath=new_elem_obj.xpath)
+            else:
+                query = query.filter_by(
+                    tag=new_elem_obj.tag,
+                    location_x=new_elem_obj.location_x,
+                    location_y=new_elem_obj.location_y,
+                    size_w=new_elem_obj.size_w,
+                    size_h=new_elem_obj.size_h)
+            elem = query.first()
         return(elem)
 
     def _construct_current_state(self):
-        logging.debug('Constructing the current state as object')
+        logging.info('Constructing the current state as object')
         new_state_obj = DomState(
             dom=self.d.execute_script("return document.documentElement.outerHTML;"),
             text=self.d.find_element_by_tag_name('body').text,
             url=self.d.current_url,
             absolute=False if self.get_current_state() and self.d.current_url == self.get_current_state().url else True,
-            screenshot=os.path.join("command_cache", uuid.uuid4().hex[:7] + ".png"),
+            screenshot=os.path.join("command_cache", uuid.uuid4().hex[:10] + ".png"),
             seed=self.seed,
         )
         self.d.save_screenshot(new_state_obj.screenshot)
-        logging.debug('Completed constructing the current state as object')
-        duplicate_state = self._check_if_duplicate_state(new_state_obj)
-        if duplicate_state:
-            elements = duplicate_state.elements
-            new_state_obj = duplicate_state
+        logging.info('Completed constructing the current state as object')
+        state = self._check_if_duplicate_state(new_state_obj)
+        if state:
+            elements = state.elements
+            self._current_state_id = state.id
+            logging.info("State already found as %d" % (state.id))
+            new = False
         else:
             elements = self.get_current_elements()
-            for e in elements:
-                e.dom_states.append(new_state_obj)
-        return(new_state_obj, elements)
+            state = self._add_state(new_state_obj, elements)
+            self.DG.add_node(state.id, url=state.url, absolute=state.absolute, seed=self.seed)
+            self._current_state_id = state.id
+            logging.info("Adding new state as no existing matched (ID: %d Absolute: %s URL : %s)" % (state.id, state.absolute, state.url))
+            new = True
+        return(state, elements, new)
 
     def _construct_state_vector(self, state):
         forms = collections.OrderedDict()
@@ -243,11 +262,9 @@ class NBrowser(object):
                     if c.placeholder: placeholders.append(c.placeholder)
                 if placeholders:
                     forms[e] = np.concatenate((self.agent.d2v(placeholders), [1.0 if e.interacted else 0.0]))
-                    logging.debug("%s ---- %s" % (e.xpath, str(forms[e])))
             elif e.tag == 'a':
                 if e.placeholder:
                     links[e] = np.concatenate((self.agent.w2v(e.placeholder), [1.0 if e.interacted else 0.0]))
-                    logging.debug("%s ---- %s" % (e.placeholder, str(links[e])))
         for label in self._input_labeler.get_labels():
             if self.session.query(DomElement).filter_by(label=label).filter(DomElement.value != None).first():
                 labels[label] = 1.0
@@ -280,32 +297,15 @@ class NBrowser(object):
         Now we will save this if it is a previously undiscovered state.
         """
         logging.debug("Trying to save this state if this is previously undetected")
-        state, elements = self._construct_current_state()
-        if state.id == None:
-            state = self._add_state(state, elements)
-            self.DG.add_node(state.id, url=state.url, absolute=state.absolute, seed=self.seed)
-            self._current_state_id = state.id
-            logging.debug("Adding new state as no existing matched (ID: %d Absolute: %s URL : %s)" % (state.id, state.absolute, state.url))
-            return(True)
-        else:
-            self._current_state_id = state.id
-            logging.debug("State already found as %d" % (state.id))
-            return(False)
+        return(self._construct_current_state()[2])
 
-    def _add_state(self, new_state_obj, elements):
-        for item in [new_state_obj] + elements:
-            self.session.merge(item) if item.id else self.session.add(item)
+    def _add_state(self, state, elements):
+        self.session.merge(state) if state.id else self.session.add(state)
+        for e in elements:
+            e.dom_states.append(state)
+            self.session.merge(e) if e.id else self.session.add(e)
         self.session.commit()
-        return(new_state_obj)
-
-    @staticmethod
-    def _image_ssim(img1, img2):
-        imageA = imread(img1, flatten=True)
-        imageB = imread(img2, flatten=True)
-        if imageA.shape == imageB.shape:
-            return ssim(imageA, imageB)
-        else:
-            return(0.0)
+        return(state)
 
     def quit(self):
         """
@@ -318,7 +318,7 @@ class NBrowser(object):
             self.agent.close()
 
     def get_current_elements(self):
-        logging.debug('Getting current element objects')
+        logging.info('Getting current element objects')
         elements = []
         # strings = utilities.get_strings(self.d)
         # import pdb
@@ -360,12 +360,14 @@ class NBrowser(object):
                 )
                 # Now add form and element objects after checking for duplicates
                 form_element = self._check_if_duplicate_element(temp_form_element)
-                elements.append(form_element) if form_element else elements.append(temp_form_element)
-                form_element = elements[-1]
-                for i in temp_form_inputs:
-                    i.parent = form_element
-                    e = self._check_if_duplicate_element(i)
-                    elements.append(e) if e else elements.append(i)
+                if form_element:
+                    elements.append(form_element)
+                    elements += form_element.children
+                else:  # If form is not detected as duplicate just blindly add all inputs
+                    elements.append(temp_form_element)
+                    for i in temp_form_inputs:
+                        i.parent = temp_form_element
+                        elements.append(i)
                 temp_form_inputs = []
         logging.debug('Iterating over links to create objects')
         for i in self.d.find_elements_by_tag_name('a'):
@@ -384,7 +386,12 @@ class NBrowser(object):
                     size_h=i.size["height"],
                     placeholder=utilities.get_placeholder(self.d, i),
                 )
+                logging.debug("Link Object: %s (%s)" % (str(elem_obj.placeholder), elem_obj.xpath))
                 duplicate_obj = self._check_if_duplicate_element(elem_obj)
+                if duplicate_obj:
+                    logging.debug("Duplicate object detected with ID: %d" % (duplicate_obj.id))
+                else:
+                    logging.debug("Brand new element as no duplicates detected")
                 elements.append(duplicate_obj) if duplicate_obj else elements.append(elem_obj)
         logging.debug('%d Elements gathered' % (len(elements)))
         return(elements)
@@ -454,23 +461,39 @@ class NBrowser(object):
             logging.debug("Information is already extracted from this state")
 
     def _reset_action_history(self):
-        logging.debug("Resetting action history as new state is detected")
+        logging.info("Resetting action history")
         self._action_history = []
 
+    def reset(self, hard=True):
+        if self.session and hard == True:
+                logging.info("Cleaning all data in state db")
+                self.session.query(DomElement).delete()
+                self.session.query(DomState).delete()
+                self.session.commit()
+        self._reset_action_history()
+
     def _add_action_history(self, element):
-        logging.debug("Adding element xpath to action history (%s)" %(element.xpath))
+        logging.info("Adding element xpath to action history (%s)" %(element.xpath))
         self._action_history.append(element.xpath)
+
+    def _am_i_struck_in_loop(self):
+        struck = False
+        if len(self._action_history) > 1 and self._action_history[-1] == self._action_history[-2]:
+            logging.info("Detected same action in two successive trails, so struck")
+            struck = True
+        return(struck)
 
     def ask_agent(self):
         state = self.get_current_state()
         state_vector, elements = self._construct_state_vector(state)
         state_vector = state_vector.tolist()
         if len(filter(lambda x: (x != None), elements)) == 0: raise NoElementsToInteract()
-        if len(filter(lambda x: (x and x.xpath not in self._action_history), elements)) == 0: raise NoNewElementsToInteract()
+        if self._am_i_struck_in_loop(): raise StruckInLoop()
+        if '127.0.0.1' not in state.url: raise ResetEnvironment()
         action_index = self.agent.get_action(state_vector, elements)
         self.act_on(elements[action_index])
         if self.save_state(): self.enhance_state_info()
-        reward = 10 if 'secret' in self.get_current_state().url else -1
+        reward = 10 if 'Logged in as' in self.get_current_state().text else -1
         new_state = self.get_current_state()
         new_state_vector, new_elements = self._construct_state_vector(new_state)
         new_state_vector = new_state_vector.tolist()
@@ -483,6 +506,7 @@ class NBrowser(object):
         return([state_vector, action_index, reward, new_state_vector])
 
     def train_agent(self, obs):
+        logging.info("Integrating observation with reward %d" % (obs[2]))
         self.agent.integrate(*obs)
 
     def act_on(self, element):
@@ -495,7 +519,7 @@ class NBrowser(object):
 
     def click_link(self, element):
         try:
-            logging.debug("Trying to click %s" % (str(element.placeholder)))
+            logging.info("Trying to click %s" % (str(element.placeholder)))
             selenium_elem = self.d.find_element_by_xpath(element.xpath)
             selenium_elem.click()
             element.interacted = True
@@ -512,8 +536,8 @@ class NBrowser(object):
                 form = i
                 elements = i.children
                 break
-        logging.debug("Trying to fill form %s" % (form.xpath))
-        if attempt < 3:
+        logging.info("Trying to fill form %s" % (form.xpath))
+        if attempt < 1:  # Only one attempt
             for e in elements + elements:  # Iterate twice
                 d_e = self.d.find_element_by_xpath(e.xpath)
                 payload = None
@@ -546,7 +570,7 @@ class NBrowser(object):
                     d_e.send_keys(value)
                     payload = value
                 if payload:
-                    logging.debug("%s = %s" % (str(e.placeholder), payload))
+                    logging.info("%s = %s" % (str(e.placeholder), payload))
                     e.value = payload
                     self.session.merge(e)  # Commit only when success
                 time.sleep(1)
@@ -561,8 +585,9 @@ class NBrowser(object):
                 else:
                     self.session.commit()
         else:
-            logging.debug("Form fill failed multiple times and leaving it. Humse na ho payi!!")
-            self.session.rollback()
+            logging.info("Form fill failed multiple times and leaving it. Humse na ho payi!!")
+            # Interaction even if failed should be marked
+            # self.session.rollback()
 
     def _form_fill_success(self, form, old_state_id=None):
         diff = self._get_dom_diff()
@@ -578,11 +603,11 @@ class NBrowser(object):
                 old_input_count += 1
             except NoSuchElementException, InvalidSelectorException:
                 continue
-        if old_input_count > 0.8 * len(form.children) or (new_lines_count > 0 and new_vector_count > 0.8 * new_lines_count):
-            logging.debug("Form fill considered as fail")
+        if (new_lines_count > 4 and new_vector_count > 0.6 * new_lines_count):
+            logging.info("Form fill considered as fail")
             return(False)
         else:
-            logging.debug("Form fill considered as success")
+            logging.info("Form fill considered as success")
             return(True)
 
 
@@ -596,22 +621,21 @@ if __name__ == "__main__":
         # b.navigate_to_url('https://signup.ballparkapp.com/')
         # b.navigate_to_url('https://hujplpiqmu.ballparkapp.com/session/new')
         # b.navigate_to_url('https://twitter.com/signup')
-        b.navigate_to_url('http://127.0.0.1:8888')
-        b.save_state()
+        # b.navigate_to_url('http://127.0.0.1:8888')
+        b.navigate_to_url('http://127.0.0.1:8000')
         b.enhance_state_info()
-        for i in range(0, 50):
+        for i in range(0, 100):  # Experiment number
             try:
-                observation = b.ask_agent()
-                # b.train_agent(observation)
-            except NoElementsToInteract:
-                logging.debug("No elements to interact hence going back to homepage")
-                b.navigate_to_url('http://127.0.0.1:8888')
-                b.save_state()
-                time.sleep(1)
-            except NoNewElementsToInteract:
-                logging.debug("No new elements to interact hence going back to homepage")
-                b.navigate_to_url('http://127.0.0.1:8888')
-                b.save_state()
+                for i in range(0, 10):
+                    observation = b.ask_agent()
+                    b.train_agent(observation)
+                    if observation[2] == 10: raise ResetEnvironment()  # Terminal state
+                raise ResetEnvironment()
+            except (NoElementsToInteract, StruckInLoop, ResetEnvironment) as e:
+                logging.info(e.message)
+                # b.navigate_to_url('http://127.0.0.1:8000/delete_everything')  # Custom reset handler built into our webapp
+                b.navigate_to_url('http://127.0.0.1:8000/')  # Custom reset handler built into our webapp
+                b.reset(hard=False)
                 time.sleep(1)
         # Tracer()()
     except KeyboardInterrupt:

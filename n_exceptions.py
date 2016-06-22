@@ -1,6 +1,13 @@
-class NoElementsToInteract(Exception):
+class NoElementsToInteract(BaseException):
+    message = "No elements present in state to interact"
     pass
 
 
-class NoNewElementsToInteract(Exception):
+class StruckInLoop(BaseException):
+    message = "Struck in a loop"
+    pass
+
+
+class ResetEnvironment(BaseException):
+    message = "Reset environment"
     pass

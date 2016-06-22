@@ -5,6 +5,8 @@ import string
 import config
 import help2vec
 
+from scipy.misc import imread
+from skimage.measure import compare_ssim as ssim
 from pattern.en import parsetree, pprint, singularize, wordnet
 from selenium.common.exceptions import InvalidSelectorException, NoSuchElementException
 
@@ -231,3 +233,12 @@ def is_element_mandatory(placeholder):
     if placeholder and '*' in placeholder:
         return(True)
     return(False)
+
+def image_ssim(img1, img2):
+    imageA = imread(img1, flatten=True)
+    imageB = imread(img2, flatten=True)
+    if imageA.shape == imageB.shape:
+        v = ssim(imageA, imageB)
+        return(v)
+    else:
+        return(0.0)
