@@ -39,21 +39,25 @@ class Word2Vec(Base):
 
 
 class NAgent(object):
-    WORD2VEC_DB = 'word2vec.db'
-    WORD2VEC_JSON = 'word2vec.json'
-    DOC2VEC_MODEL = 'doc2vec.model'
-    DOC2VEC_DATA = 'doc2vec.pickle'
-    EXPERIENCES_DATA = 'experiences.pickle'
-    def __init__(self, alpha=0.1, gamma=0.9, epsilon=0.3, constant_scaling=0.7, n_state_dims=35, n_actions=10):
-        self.alpha = alpha
-        self.gamma = gamma
-        self.epsilon = epsilon
-        self.constant_scaling = constant_scaling
-        self.n_state_dims = n_state_dims
-        self.n_actions = n_actions
-        self.__init_sqlalchemy_session()
-        self.__init_nn()
-        self.__init_experiences()
+    WORD2VEC_DB = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'word2vec.db')
+    WORD2VEC_JSON = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'word2vec.json')
+    DOC2VEC_MODEL = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'doc2vec.model')
+    DOC2VEC_DATA = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'doc2vec.pickle')
+    EXPERIENCES_DATA = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'experiences.pickle')
+    def __init__(self, alpha=0.1, gamma=0.9, epsilon=0.3, constant_scaling=0.7, n_state_dims=35, n_actions=10, load_network=True):
+        if load_network == True:
+            self.alpha = alpha
+            self.gamma = gamma
+            self.epsilon = epsilon
+            self.constant_scaling = constant_scaling
+            self.n_state_dims = n_state_dims
+            self.n_actions = n_actions
+            self.__init_sqlalchemy_session()
+            self.__init_nn()
+            self.__init_experiences()
+        else:
+            self.nn = None
+            self.experiences = None
         self._load_d2v()
 
     def __init_experiences(self):
@@ -109,7 +113,7 @@ class NAgent(object):
                                     pass
                         elif w.type == "NN":
                             words.append(w.string.lower())
-        return(words)
+        return([unicode(w) for w in words])
 
     def w2v(self, phrase):
         words = self._get_words(phrase)
@@ -153,7 +157,12 @@ class NAgent(object):
         logging.debug("Extracted following tokens for Doc2Vec")
         logging.debug(str(tokens))
         self._pickle_doc(tokens)
-        return(self._d2v.infer_vector(tokens))
+        try: # If no samples are trained
+            vector = self._d2v.infer_vector(tokens)
+        except AttributeError:
+            logging.debug("Attribute error when infering Doc2Vec vector")
+            vector = None
+        return(vector)
 
     def get_action(self, state_vector, elements):
         adv_values = self.nn.predict([state_vector])[0]
@@ -202,13 +211,14 @@ class NAgent(object):
             logging.debug("Skipping replay as TD Error <= 0")
 
     def close(self):
-        # Save experiences json
-        with open(self.EXPERIENCES_DATA, 'wb') as f:
-            pickle.dump(self.experiences, f)
+        if self.experiences:
+            # Save experiences json
+            with open(self.EXPERIENCES_DATA, 'wb') as f:
+                pickle.dump(self.experiences, f)
         # Save D2V docs for next time training
         self._d2v.save(self.DOC2VEC_MODEL)
         # Close neural network so it saves it weights
-        self.nn.close()
+        if self.nn: self.nn.close()
 
 
 class NeuralNetwork(object):

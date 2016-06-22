@@ -474,13 +474,16 @@ class NBrowser(object):
         new_state = self.get_current_state()
         new_state_vector, new_elements = self._construct_state_vector(new_state)
         new_state_vector = new_state_vector.tolist()
-        self.agent.integrate(state_vector, action_index, reward, new_state_vector)
 
         # Add to action history to avoid struck
         if state.id != new_state.id:
             self._reset_action_history()
         else:
             self._add_action_history(elements[action_index])
+        return([state_vector, action_index, reward, new_state_vector])
+
+    def train_agent(self, obs):
+        self.agent.integrate(*obs)
 
     def act_on(self, element):
         # Save few values for reward calculation
@@ -598,7 +601,8 @@ if __name__ == "__main__":
         b.enhance_state_info()
         for i in range(0, 50):
             try:
-                b.ask_agent()
+                observation = b.ask_agent()
+                # b.train_agent(observation)
             except NoElementsToInteract:
                 logging.debug("No elements to interact hence going back to homepage")
                 b.navigate_to_url('http://127.0.0.1:8888')

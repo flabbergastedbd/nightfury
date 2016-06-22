@@ -8,6 +8,8 @@ import help2vec
 from pattern.en import parsetree, pprint, singularize, wordnet
 from selenium.common.exceptions import InvalidSelectorException, NoSuchElementException
 
+PRINTABLE_CHARS = set(string.printable)
+
 def get_element_xpath(elem):
     if elem and elem.get_attribute("id"):
         return('//*[@id="%s"]' % (elem.get_attribute("id")))
@@ -119,11 +121,17 @@ def get_placeholder(driver, elem):
                             break
             except NoSuchElementException:
                 pass
-    return(clean_html_tags(placeholder.strip('-: ')) if placeholder else None)
+    return(clean_placeholder(placeholder))
+
+def clean_placeholder(placeholder):
+    return(clean_html_tags(clean_non_printable_chars(placeholder.strip('-: \n\t'))) if placeholder else None)
 
 def clean_html_tags(text):
     text = re.sub(re.compile(r'<[^>]+?>', re.MULTILINE), '', text)
     return(text)
+
+def clean_non_printable_chars(text):
+    return(filter(lambda x: x in PRINTABLE_CHARS, text))
 
 def get_pe_dict(elems):
     """
