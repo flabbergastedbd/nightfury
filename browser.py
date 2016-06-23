@@ -76,7 +76,7 @@ class DomElement(Base):
     interacted = Column(Boolean, default=False)
     dom_states = relationship("DomState",
         secondary=state_element_association_table,
-        backref="elements")
+        backref=backref("elements", order_by="DomElement.placeholder"))
 
     def __str__(self):
         return("Tag: %s Placeholder: %s Label: %s Xpath: %s Location: (%d, %d) Size: %d width, %d height)" % (
