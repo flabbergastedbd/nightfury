@@ -2,7 +2,6 @@ import os
 import json
 import shutil
 import text2num
-import logging
 import tensorflow as tf
 import numpy as np
 import logging
@@ -279,6 +278,7 @@ class NeuralNetwork(object):
         return(predictions)
 
     def close(self):
+        logging.debug("Closing and saving neural network model")
         self.__close_sess()
 
 

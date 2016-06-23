@@ -21,7 +21,7 @@ from selenium import webdriver
 from selenium.webdriver.remote.remote_connection import LOGGER
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker, backref
 from sqlalchemy import Table, Column, Integer, String, Boolean,\
             Float, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
@@ -129,8 +129,15 @@ class NBrowser(object):
 
     def _init_selenium_driver(self):
         LOGGER.setLevel(logging.WARNING)
+
+        # CHROMEDRIVER_BIN = '/usr/local/bin/chromedriver'
+        # os.environ['webdriver.chrome.driver'] = CHROMEDRIVER_BIN
+        # self.d = webdriver.Chrome(CHROMEDRIVER_BIN)
+
         self.d = webdriver.Firefox()
         # self.d.implicitly_wait(1)
+
+        # self.d = webdriver.PhantomJS('/usr/local/bin/phantomjs')
         self.d.set_window_size(config.BROWSER_WIDTH, config.BROWSER_HEIGHT)
 
     def _init_sqlalchemy_session(self):
@@ -152,7 +159,7 @@ class NBrowser(object):
         self.LINK_DIM = 4
         self.LABEL_DIM = self._input_labeler.get_num_labels()
         self.FORM_N = 2
-        self.LINK_N = 20
+        self.LINK_N = 30
         form_dims = self.FORM_N * self.FORM_DIM # No. of forms * Form vector dimension
         link_dims = self.LINK_N * self.LINK_DIM # No. of links * Link vector dimension
         self.agent = agent.NAgent(n_state_dims=form_dims+link_dims+self.LABEL_DIM, n_actions=self.FORM_N+self.LINK_N)
@@ -203,6 +210,20 @@ class NBrowser(object):
                 return(old_state_obj)
         return(None)
 
+    def _check_if_duplicate_form(self, form, temp_form_inputs):
+        query = self.session.query(DomElement).filter_by(xpath=form.xpath)
+        dup_form = query.first()
+        if dup_form and len(dup_form.children) == len(temp_form_inputs):  # If match then check input by input
+            dup_form_children = self.session.query(DomElement).filter_by(parent_id=dup_form.id)
+            for i in temp_form_inputs:
+                if ((i.placeholder and not dup_form_children.filter_by(placeholder=i.placeholder).first()) or \
+                    (i.name and not dup_form_children.filter_by(name=i.name).first())):
+                    dup_form = None
+                    break
+        else:
+            dup_form = None
+        return(dup_form)
+
     def _check_if_duplicate_element(self, new_elem_obj):
         """
         This is going to be a big ass method to compare two elements in lots of ways
@@ -211,12 +232,10 @@ class NBrowser(object):
         if self.session.query(DomElement).count() > 0:
             query = self.session.query(DomElement)
             if new_elem_obj.placeholder:
-                query = query.filter_by(tag=new_elem_obj.tag, placeholder=new_elem_obj.placeholder)
-            elif new_elem_obj.tag == 'form':
-                query = query.filter_by(tag=new_elem_obj.tag, xpath=new_elem_obj.xpath)
+                query = query.filter_by(tag=new_elem_obj.tag, placeholder=new_elem_obj.placeholder, name=new_elem_obj.name)
             else:
                 query = query.filter_by(
-                    tag=new_elem_obj.tag,
+                    name=new_elem_obj.name,
                     location_x=new_elem_obj.location_x,
                     location_y=new_elem_obj.location_y,
                     size_w=new_elem_obj.size_w,
@@ -313,9 +332,10 @@ class NBrowser(object):
         """
         nx.write_graphml(self.DG, path=self.GRAPH_PATH)
         self.session.close()
-        self.d.quit()
         if self.agent:
             self.agent.close()
+        # Keep webdriver for end, because it might have errors
+        self.d.quit()
 
     def get_current_elements(self):
         logging.info('Getting current element objects')
@@ -359,8 +379,9 @@ class NBrowser(object):
                     xpath=utilities.get_element_xpath(f),
                 )
                 # Now add form and element objects after checking for duplicates
-                form_element = self._check_if_duplicate_element(temp_form_element)
+                form_element = self._check_if_duplicate_form(temp_form_element, temp_form_inputs)
                 if form_element:
+                    logging.debug("Duplicate form detected (ID: %d) --> %s" % (form_element.id, str([k.placeholder for k in temp_form_inputs])))
                     elements.append(form_element)
                     elements += form_element.children
                 else:  # If form is not detected as duplicate just blindly add all inputs
@@ -386,12 +407,11 @@ class NBrowser(object):
                     size_h=i.size["height"],
                     placeholder=utilities.get_placeholder(self.d, i),
                 )
-                logging.debug("Link Object: %s (%s)" % (str(elem_obj.placeholder), elem_obj.xpath))
                 duplicate_obj = self._check_if_duplicate_element(elem_obj)
                 if duplicate_obj:
-                    logging.debug("Duplicate object detected with ID: %d" % (duplicate_obj.id))
+                    logging.debug("Duplicate object for %s (ID: %d)" % (str(elem_obj.placeholder), duplicate_obj.id))
                 else:
-                    logging.debug("Brand new element as no duplicates detected")
+                    logging.debug("Brand new element %s (xpath=%s)" % (str(elem_obj.placeholder), elem_obj.xpath))
                 elements.append(duplicate_obj) if duplicate_obj else elements.append(elem_obj)
         logging.debug('%d Elements gathered' % (len(elements)))
         return(elements)
@@ -483,14 +503,20 @@ class NBrowser(object):
             struck = True
         return(struck)
 
-    def ask_agent(self):
+    def _ask_user(self, elements):
+        for i, e in enumerate(elements):
+            if e: print("%2d) %s [xpath=%s]" % (i, str(e.placeholder), str(e.xpath)))
+        print()
+        return(int(raw_input('Select an action index > ')))
+
+    def ask_agent(self, human=False):
         state = self.get_current_state()
         state_vector, elements = self._construct_state_vector(state)
         state_vector = state_vector.tolist()
         if len(filter(lambda x: (x != None), elements)) == 0: raise NoElementsToInteract()
         if self._am_i_struck_in_loop(): raise StruckInLoop()
-        if '127.0.0.1' not in state.url: raise ResetEnvironment()
-        action_index = self.agent.get_action(state_vector, elements)
+        if '127.0.0.1' not in state.url: raise SoftResetEnvironment()
+        action_index = self.agent.get_action(state_vector, elements) if not human else self._ask_user(elements)
         self.act_on(elements[action_index])
         if self.save_state(): self.enhance_state_info()
         reward = 10 if 'Logged in as' in self.get_current_state().text else -1
@@ -603,7 +629,7 @@ class NBrowser(object):
                 old_input_count += 1
             except NoSuchElementException, InvalidSelectorException:
                 continue
-        if (new_lines_count > 4 and new_vector_count > 0.6 * new_lines_count):
+        if (new_lines_count > 0 and new_vector_count > 0.8 * new_lines_count):
             logging.info("Form fill considered as fail")
             return(False)
         else:
@@ -613,6 +639,10 @@ class NBrowser(object):
 
 if __name__ == "__main__":
     try:
+        MODE_FILE = '/tmp/nightfury.mode'
+        if not os.path.exists(MODE_FILE):
+            with open(MODE_FILE, 'w') as f:
+                f.write('m')
         b = None
         b = NBrowser()
         # b.navigate_to_url('file:///Users/tunnelshade/Downloads/YodleeLabs-Registration.htm')
@@ -624,18 +654,36 @@ if __name__ == "__main__":
         # b.navigate_to_url('http://127.0.0.1:8888')
         b.navigate_to_url('http://127.0.0.1:8000')
         b.enhance_state_info()
-        for i in range(0, 100):  # Experiment number
+        for i in range(0, 500):  # Experiment number
             try:
-                for i in range(0, 10):
-                    observation = b.ask_agent()
-                    b.train_agent(observation)
-                    if observation[2] == 10: raise ResetEnvironment()  # Terminal state
-                raise ResetEnvironment()
-            except (NoElementsToInteract, StruckInLoop, ResetEnvironment) as e:
+                for j in range(0, 10):
+                    with open(MODE_FILE, 'r') as f:
+                        mode = f.read()
+                        if len(mode) > 1: mode = mode[0]
+                    if mode == 'p':
+                        b.agent.replay()
+                        time.sleep(5)
+                    else:
+                        if mode == 'h':
+                            observation = b.ask_agent(human=True)
+                        else:
+                            observation = b.ask_agent(human=False)
+                        b.train_agent(observation)
+                        if observation[2] == 10: raise SoftResetEnvironment()  # Terminal state
+                if j % 20: raise HardResetEnvironment()
+            except (NoElementsToInteract, StruckInLoop, SoftResetEnvironment) as e:
                 logging.info(e.message)
                 # b.navigate_to_url('http://127.0.0.1:8000/delete_everything')  # Custom reset handler built into our webapp
-                b.navigate_to_url('http://127.0.0.1:8000/')  # Custom reset handler built into our webapp
+                b.d.get('http://127.0.0.1:8000/accounts/logout/')  # Custom reset handler built into our webapp
                 b.reset(hard=False)
+                b.navigate_to_url('http://127.0.0.1:8000/')  # Custom reset handler built into our webapp
+                time.sleep(1)
+            except (HardResetEnvironment) as e:
+                logging.info(e.message)
+                b.d.get('http://127.0.0.1:8000/delete_everything')  # Custom reset handler built into our webapp
+                b.d.get('http://127.0.0.1:8000/accounts/logout/')  # Custom reset handler built into our webapp
+                b.reset(hard=True)
+                b.navigate_to_url('http://127.0.0.1:8000/')  # Custom reset handler built into our webapp
                 time.sleep(1)
         # Tracer()()
     except KeyboardInterrupt:

@@ -18,8 +18,9 @@ if __name__ == "__main__":
                 placeholders = []
                 for e in data:
                     try:
-                        placeholder = clean_placeholder(e['placeholder']).encode('utf-8')
+                        placeholder = clean_placeholder(e['placeholder'])
                         if placeholder:
+                            placeholder = placeholder.encode('utf-8')
                             placeholders.append(unicode(placeholder))
                     except TypeError:
                         print("Dumb error again")

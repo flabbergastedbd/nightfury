@@ -8,6 +8,10 @@ class StruckInLoop(BaseException):
     pass
 
 
-class ResetEnvironment(BaseException):
-    message = "Reset environment"
+class SoftResetEnvironment(BaseException):
+    message = "Soft reset environment"
+    pass
+
+class HardResetEnvironment(BaseException):
+    message = "Hard reset environment"
     pass
