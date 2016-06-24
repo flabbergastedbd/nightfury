@@ -155,11 +155,11 @@ class NBrowser(object):
             self.DG = nx.DiGraph()
 
     def _init_agent(self):
-        self.FORM_DIM = 6
-        self.LINK_DIM = 4
+        self.FORM_DIM = 3
+        self.LINK_DIM = 3
         self.LABEL_DIM = self._input_labeler.get_num_labels()
         self.FORM_N = 2
-        self.LINK_N = 30
+        self.LINK_N = 12
         form_dims = self.FORM_N * self.FORM_DIM # No. of forms * Form vector dimension
         link_dims = self.LINK_N * self.LINK_DIM # No. of links * Link vector dimension
         self.agent = agent.NAgent(n_state_dims=form_dims+link_dims+self.LABEL_DIM, n_actions=self.FORM_N+self.LINK_N)
@@ -232,7 +232,7 @@ class NBrowser(object):
         if self.session.query(DomElement).count() > 0:
             query = self.session.query(DomElement)
             if new_elem_obj.placeholder:
-                query = query.filter_by(tag=new_elem_obj.tag, placeholder=new_elem_obj.placeholder, name=new_elem_obj.name)
+                query = query.filter_by(tag=new_elem_obj.tag, placeholder=new_elem_obj.placeholder)
             else:
                 query = query.filter_by(
                     name=new_elem_obj.name,
@@ -280,15 +280,15 @@ class NBrowser(object):
                 for c in e.children:
                     if c.placeholder: placeholders.append(c.placeholder)
                 if placeholders:
-                    forms[e] = np.concatenate((self.agent.d2v(placeholders), [1.0 if e.interacted else 0.0]))
+                    forms[e] = np.concatenate((self.agent.d2v(placeholders), [1.0 if e.interacted else -1.0]))
             elif e.tag == 'a':
                 if e.placeholder:
-                    links[e] = np.concatenate((self.agent.w2v(e.placeholder), [1.0 if e.interacted else 0.0]))
+                    links[e] = np.concatenate((self.agent.w2v(e.placeholder), [1.0 if e.interacted else -1.0]))
         for label in self._input_labeler.get_labels():
             if self.session.query(DomElement).filter_by(label=label).filter(DomElement.value != None).first():
                 labels[label] = 1.0
             else:
-                labels[label] = 0.0
+                labels[label] = -1.0
         state_vector = np.array([])
         elements = []
         for i in range(0, self.FORM_N):
@@ -411,6 +411,7 @@ class NBrowser(object):
                 if duplicate_obj:
                     logging.debug("Duplicate object for %s (ID: %d)" % (str(elem_obj.placeholder), duplicate_obj.id))
                 else:
+                    self.session.add(elem_obj)
                     logging.debug("Brand new element %s (xpath=%s)" % (str(elem_obj.placeholder), elem_obj.xpath))
                 elements.append(duplicate_obj) if duplicate_obj else elements.append(elem_obj)
         logging.debug('%d Elements gathered' % (len(elements)))
@@ -509,14 +510,15 @@ class NBrowser(object):
         print()
         return(int(raw_input('Select an action index > ')))
 
-    def ask_agent(self, human=False):
+    def ask_agent(self, human=False, action_index=None):
         state = self.get_current_state()
         state_vector, elements = self._construct_state_vector(state)
         state_vector = state_vector.tolist()
         if len(filter(lambda x: (x != None), elements)) == 0: raise NoElementsToInteract()
         if self._am_i_struck_in_loop(): raise StruckInLoop()
         if '127.0.0.1' not in state.url: raise SoftResetEnvironment()
-        action_index = self.agent.get_action(state_vector, elements) if not human else self._ask_user(elements)
+        if action_index == None:
+            action_index = self.agent.get_action(state_vector, elements) if not human else self._ask_user(elements)
         self.act_on(elements[action_index])
         if self.save_state(): self.enhance_state_info()
         reward = 10 if 'Logged in as' in self.get_current_state().text else -1
@@ -654,6 +656,10 @@ if __name__ == "__main__":
         # b.navigate_to_url('http://127.0.0.1:8888')
         b.navigate_to_url('http://127.0.0.1:8000')
         b.enhance_state_info()
+        # Pre-train
+        for i in [11, 1]:
+            observation = b.ask_agent(action_index=i)
+            b.train_agent(observation)
         for i in range(0, 500):  # Experiment number
             try:
                 for j in range(0, 10):

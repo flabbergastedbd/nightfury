@@ -1,5 +1,6 @@
 import os
 import json
+import math
 import shutil
 import text2num
 import tensorflow as tf
@@ -67,7 +68,8 @@ class NAgent(object):
             self.experiences = OrderedDict()
 
     def __init_nn(self):
-        self.nn = NeuralNetwork(self.n_state_dims, 100, 100, self.n_actions)
+        hidden_dims = int(math.ceil(self.n_state_dims + self.n_state_dims/10))
+        self.nn = NeuralNetwork(self.n_state_dims, hidden_dims, hidden_dims, self.n_actions)
 
     def __init_sqlalchemy_session(self):
         self.engine = create_engine("sqlite:///" + self.WORD2VEC_DB)
@@ -88,9 +90,9 @@ class NAgent(object):
         sens = self._unpickle_doc()
         if sens:
             data = [doc2vec.LabeledSentence(words=words, tags=["SENT_%d" % i]) for i, words in enumerate(sens)]
-            self._d2v = Doc2Vec(data, size=5, min_count=1)
+            self._d2v = Doc2Vec(data, size=2, min_count=1)
         else:
-            self._d2v = Doc2Vec(size=5, min_count=1)
+            self._d2v = Doc2Vec(size=2, min_count=1)
 
     @staticmethod
     def _get_words(phrase):
@@ -116,7 +118,7 @@ class NAgent(object):
 
     def w2v(self, phrase):
         words = self._get_words(phrase)
-        vector = [0.0, 0.0, 0.0]
+        vector = [0.0, 0.0]
         if words:
             vec_objs = self.session.query(Word2Vec).filter(Word2Vec.word.in_(words)).all()
             for obj in vec_objs:
@@ -207,7 +209,9 @@ class NAgent(object):
         """
         This is prioritized replay using td error
         """
-        e = self.experiences.popitem()
+        # e = self.experiences.popitem()
+        i = np.random.choice(self.experiences.keys())
+        e = self.experiences.pop(i)
         if e[1] > 0:
             new_td_error = self.integrate(*e[0])
             logging.debug("Replay changed td error from %f to %f" % (e[1], new_td_error))
@@ -234,9 +238,9 @@ class NeuralNetwork(object):
         logging.debug("Hidden Layer 2 Length: %d" % (n_hidden_2))
         logging.debug("Actions Length: %d" % (n_actions))
         weights = {
-            'h1': tf.Variable(tf.random_normal([n_state_dims, n_hidden_1])),
-            'h2': tf.Variable(tf.random_normal([n_hidden_1, n_hidden_2])),
-            'out': tf.Variable(tf.random_normal([n_hidden_2, n_actions]))
+            'h1': tf.Variable(tf.random_normal([n_state_dims, n_hidden_1], stddev=(1/math.sqrt(n_state_dims)))),
+            'h2': tf.Variable(tf.random_normal([n_hidden_1, n_hidden_2], stddev=(1/math.sqrt(n_hidden_1)))),
+            'out': tf.Variable(tf.random_normal([n_hidden_2, n_actions], stddev=(1/math.sqrt(n_hidden_2))))
         }
         biases = {
             'h1': tf.Variable(tf.random_normal([n_hidden_1])),
