@@ -76,7 +76,8 @@ class DomElement(Base):
     interacted = Column(Boolean, default=False)
     dom_states = relationship("DomState",
         secondary=state_element_association_table,
-        backref=backref("elements", order_by="DomElement.placeholder"))
+        backref=backref("elements", order_by="DomElement.placeholder"),
+        order_by="DomState.id")
 
     def __str__(self):
         return("Tag: %s Placeholder: %s Label: %s Xpath: %s Location: (%d, %d) Size: %d width, %d height)" % (
@@ -93,6 +94,7 @@ class DomElement(Base):
         else:
             return(False)
 
+SITE_RESPONSE_SLEEP = 3
 
 class NBrowser(object):
     DB_PATH = 'states.db'
@@ -510,28 +512,41 @@ class NBrowser(object):
         print()
         return(int(raw_input('Select an action index > ')))
 
-    def ask_agent(self, human=False, action_index=None):
+    def ask_agent(self, *args, **kwargs):
+        # Save some variables
+        old_dom_states_n = self.session.query(DomState).count()
+        old_dom_elements_n = self.session.query(DomElement).filter_by(interacted=True).count()
+        observation = self._ask_agent(*args, **kwargs)
+        new_dom_states_n = self.session.query(DomState).count()
+        new_dom_elements_n = self.session.query(DomElement).filter_by(interacted=True).count()
+        if observation[2] == None:  # Time to count the reward
+            if (new_dom_states_n > old_dom_states_n) or (new_dom_elements_n > old_dom_elements_n):
+                observation[2] = 10
+            else:
+                observation[2] = -4
+        return(observation)
+
+    def _ask_agent(self, human=False, action_index=None):
         state = self.get_current_state()
         state_vector, elements = self._construct_state_vector(state)
         state_vector = state_vector.tolist()
-        if len(filter(lambda x: (x != None), elements)) == 0: raise NoElementsToInteract()
+        # if len(filter(lambda x: ((x != None) and (x.dom_states[0].id == state.id)), elements)) == 0: raise NoElementsToInteract()
+        if len(filter(lambda x: ((x != None)), elements)) == 0: raise NoElementsToInteract()
         if self._am_i_struck_in_loop(): raise StruckInLoop()
-        if '127.0.0.1' not in state.url: raise SoftResetEnvironment()
+        if 'localhost' not in state.url: raise SoftResetEnvironment()
         if action_index == None:
             action_index = self.agent.get_action(state_vector, elements) if not human else self._ask_user(elements)
         self.act_on(elements[action_index])
         if self.save_state(): self.enhance_state_info()
-        reward = 10 if 'Logged in as' in self.get_current_state().text else -1
         new_state = self.get_current_state()
         new_state_vector, new_elements = self._construct_state_vector(new_state)
         new_state_vector = new_state_vector.tolist()
-
         # Add to action history to avoid struck
         if state.id != new_state.id:
             self._reset_action_history()
         else:
             self._add_action_history(elements[action_index])
-        return([state_vector, action_index, reward, new_state_vector])
+        return([state_vector, action_index, None, new_state_vector])  # Reward is None, which will be filled and fed to train
 
     def train_agent(self, obs):
         logging.info("Integrating observation with reward %d" % (obs[2]))
@@ -543,7 +558,7 @@ class NBrowser(object):
             self.fill_form(element)
         elif element.tag == 'a':
             self.click_link(element)
-        time.sleep(2)
+        time.sleep(SITE_RESPONSE_SLEEP)
 
     def click_link(self, element):
         try:
@@ -594,6 +609,8 @@ class NBrowser(object):
                         value = sibling_e.value
                     else:
                         value = utilities.get_input_value(e, elements)
+                    # Dirty little hack
+                    if e.placeholder == 'Username' or e.placeholder == 'Password': value = 'guest'
                     d_e.send_keys(Keys.COMMAND + 'a')
                     d_e.send_keys(value)
                     payload = value
@@ -606,7 +623,7 @@ class NBrowser(object):
                 form.interacted = True
                 self.session.merge(form)
                 self.d.find_element_by_xpath(form.xpath).submit()
-                time.sleep(1)
+                time.sleep(SITE_RESPONSE_SLEEP)
                 if not self._form_fill_success(form):
                     self.navigate_to_state(self._current_state_id)
                     self.fill_form(form, attempt=attempt+1)
@@ -654,15 +671,14 @@ if __name__ == "__main__":
         # b.navigate_to_url('https://hujplpiqmu.ballparkapp.com/session/new')
         # b.navigate_to_url('https://twitter.com/signup')
         # b.navigate_to_url('http://127.0.0.1:8888')
-        b.navigate_to_url('http://127.0.0.1:8000')
+        # b.navigate_to_url('http://127.0.0.1:8000')
+        b.navigate_to_url('http://localhost:8080/WebGoat/login.mvc')
         b.enhance_state_info()
+        # raise KeyboardInterrupt()
         # Pre-train
-        for i in [11, 1]:
-            observation = b.ask_agent(action_index=i)
-            b.train_agent(observation)
         for i in range(0, 500):  # Experiment number
             try:
-                for j in range(0, 10):
+                for j in range(0, 20):
                     with open(MODE_FILE, 'r') as f:
                         mode = f.read()
                         if len(mode) > 1: mode = mode[0]
@@ -676,21 +692,29 @@ if __name__ == "__main__":
                             observation = b.ask_agent(human=False)
                         b.train_agent(observation)
                         if observation[2] == 10: raise SoftResetEnvironment()  # Terminal state
-                if j % 20: raise HardResetEnvironment()
+                # if j % 20: raise HardResetEnvironment()
             except (NoElementsToInteract, StruckInLoop, SoftResetEnvironment) as e:
                 logging.info(e.message)
                 # b.navigate_to_url('http://127.0.0.1:8000/delete_everything')  # Custom reset handler built into our webapp
+                """
                 b.d.get('http://127.0.0.1:8000/accounts/logout/')  # Custom reset handler built into our webapp
                 b.reset(hard=False)
                 b.navigate_to_url('http://127.0.0.1:8000/')  # Custom reset handler built into our webapp
-                time.sleep(1)
+                """
+                b.d.get('http://localhost:8080/WebGoat/j_spring_security_logout')  # Custom reset handler built into our webapp
+                b.reset(hard=False)
+                time.sleep(SITE_RESPONSE_SLEEP)
             except (HardResetEnvironment) as e:
                 logging.info(e.message)
+                """
                 b.d.get('http://127.0.0.1:8000/delete_everything')  # Custom reset handler built into our webapp
                 b.d.get('http://127.0.0.1:8000/accounts/logout/')  # Custom reset handler built into our webapp
                 b.reset(hard=True)
                 b.navigate_to_url('http://127.0.0.1:8000/')  # Custom reset handler built into our webapp
-                time.sleep(1)
+                """
+                b.d.get('http://localhost:8080/WebGoat/j_spring_security_logout')  # Custom reset handler built into our webapp
+                b.reset(hard=True)
+                time.sleep(SITE_RESPONSE_SLEEP)
         # Tracer()()
     except KeyboardInterrupt:
         pass

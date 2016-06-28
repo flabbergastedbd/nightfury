@@ -210,8 +210,9 @@ class NAgent(object):
         This is prioritized replay using td error
         """
         # e = self.experiences.popitem()
-        i = np.random.choice(self.experiences.keys())
-        e = self.experiences.pop(i)
+        k = self.experiences.keys()
+        i = np.random.randint(0, high=len(k))
+        e = (k[i], self.experiences[k[i]])
         if e[1] > 0:
             new_td_error = self.integrate(*e[0])
             logging.debug("Replay changed td error from %f to %f" % (e[1], new_td_error))
@@ -270,8 +271,8 @@ class NeuralNetwork(object):
         self.sess.close()
 
     def __build_mlp(self, _x, _weights, _biases):
-        layer_1 = tf.nn.sigmoid(tf.add(tf.matmul(_x, _weights['h1']), _biases['h1']))
-        layer_2 = tf.nn.sigmoid(tf.add(tf.matmul(layer_1, _weights['h2']), _biases['h2']))
+        layer_1 = tf.nn.relu(tf.add(tf.matmul(_x, _weights['h1']), _biases['h1']))
+        layer_2 = tf.nn.relu(tf.add(tf.matmul(layer_1, _weights['h2']), _biases['h2']))
         return(tf.matmul(layer_2, _weights['out']) + _biases['out'])
 
     def train(self, _x, _y):
