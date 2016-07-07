@@ -5,6 +5,7 @@ nohup.out
 
 results
 command_cache/*
+state_cache/*
 recorder_cache/*
 states.*
 GNews.*

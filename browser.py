@@ -5,6 +5,7 @@ import uuid
 import time
 import config
 import random
+import shutil
 import difflib
 import help2vec
 import utilities
@@ -19,6 +20,7 @@ import collections
 from fuzzywuzzy import fuzz
 from selenium import webdriver
 from selenium.webdriver.remote.remote_connection import LOGGER
+from selenium.webdriver.common.proxy import Proxy, ProxyType
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker, backref
@@ -110,7 +112,7 @@ class NBrowser(object):
         self._input_labeler = labels.InputLabeler()
 
         self._init_agent()
-        self.reset()
+        self.reset(hard=True)
 
     def _init_logging(self):
         logger = logging.getLogger()
@@ -136,7 +138,11 @@ class NBrowser(object):
         # os.environ['webdriver.chrome.driver'] = CHROMEDRIVER_BIN
         # self.d = webdriver.Chrome(CHROMEDRIVER_BIN)
 
-        self.d = webdriver.Firefox()
+        firefox_profile = webdriver.FirefoxProfile()
+        firefox_profile.set_preference("network.proxy.type", 1)
+        firefox_profile.set_preference("network.proxy.http", '127.0.0.1') #set your ip
+        firefox_profile.set_preference("network.proxy.http_port", 8080) #set your port
+        self.d = webdriver.Firefox(firefox_profile=firefox_profile)
         # self.d.implicitly_wait(1)
 
         # self.d = webdriver.PhantomJS('/usr/local/bin/phantomjs')
@@ -164,7 +170,7 @@ class NBrowser(object):
         self.LINK_N = 12
         form_dims = self.FORM_N * self.FORM_DIM # No. of forms * Form vector dimension
         link_dims = self.LINK_N * self.LINK_DIM # No. of links * Link vector dimension
-        self.agent = agent.NAgent(n_state_dims=form_dims+link_dims+self.LABEL_DIM, n_actions=self.FORM_N+self.LINK_N)
+        self.agent = agent.NAgent(n_state_dims=10, n_actions=self.FORM_N+self.LINK_N)
 
     def navigate_to_url(self, url):
         self.d.get(url)
@@ -272,45 +278,47 @@ class NBrowser(object):
             new = True
         return(state, elements, new)
 
-    def _construct_state_vector(self, state):
+    def _construct_state_vector(self, state, labels=None):
         forms = collections.OrderedDict()
         links = collections.OrderedDict()
-        labels = collections.OrderedDict()
         for e in state.elements:
             if e.tag == 'form':
                 placeholders = []
                 for c in e.children:
                     if c.placeholder: placeholders.append(c.placeholder)
                 if placeholders:
-                    forms[e] = np.concatenate((self.agent.d2v(placeholders), [1.0 if e.interacted else -1.0]))
+                    if e.interacted: placeholders.append('filled')
+                    forms[e] = placeholders
             elif e.tag == 'a':
                 if e.placeholder:
-                    links[e] = np.concatenate((self.agent.w2v(e.placeholder), [1.0 if e.interacted else -1.0]))
-        for label in self._input_labeler.get_labels():
-            if self.session.query(DomElement).filter_by(label=label).filter(DomElement.value != None).first():
-                labels[label] = 1.0
-            else:
-                labels[label] = -1.0
-        state_vector = np.array([])
+                    placeholder = [e.placeholder]
+                    if e.interacted: placeholder += ['clicked']
+                    links[e] = placeholder
+        if labels == None:
+            labels = collections.OrderedDict()
+            for label in self._input_labeler.get_labels():
+                if self.session.query(DomElement).filter_by(label=label).filter(DomElement.value != None).first():
+                    labels[label] = 1.0
+        state_words = []
         elements = []
         for i in range(0, self.FORM_N):
             try:
                 form = forms.items()[i]
-                state_vector = np.concatenate((state_vector, form[1]))
+                state_words += form[1]
                 elements.append(form[0])
             except IndexError:
-                state_vector = np.concatenate((state_vector, np.zeros(self.FORM_DIM)))
+                # state_words = np.concatenate((state_words, np.zeros(self.FORM_DIM)))
                 elements.append(None)
         for i in range(0, self.LINK_N):
             try:
                 link = links.items()[i]
-                state_vector = np.concatenate((state_vector, link[1]))
+                state_words += link[1]
                 elements.append(link[0])
             except IndexError:
-                state_vector = np.concatenate((state_vector, np.zeros(self.LINK_DIM)))
+                # state_words = np.concatenate((state_words, np.zeros(self.LINK_DIM)))
                 elements.append(None)
-        state_vector = np.concatenate((state_vector, labels.values()))
-        return(state_vector, elements)
+        state_words += labels.keys()
+        return(self.agent.d2v(state_words), elements)
 
     def save_state(self):
         """
@@ -493,6 +501,11 @@ class NBrowser(object):
                 self.session.query(DomElement).delete()
                 self.session.query(DomState).delete()
                 self.session.commit()
+                # Clear request cache
+                tmp_dir = '/tmp/request_cache'
+                if os.path.exists(tmp_dir):
+                    shutil.rmtree(tmp_dir)
+                    os.mkdir(tmp_dir)
         self._reset_action_history()
 
     def _add_action_history(self, element):
@@ -509,18 +522,16 @@ class NBrowser(object):
     def _ask_user(self, elements):
         for i, e in enumerate(elements):
             if e: print("%2d) %s [xpath=%s]" % (i, str(e.placeholder), str(e.xpath)))
-        print()
+        print('\n')
         return(int(raw_input('Select an action index > ')))
 
     def ask_agent(self, *args, **kwargs):
         # Save some variables
-        old_dom_states_n = self.session.query(DomState).count()
-        old_dom_elements_n = self.session.query(DomElement).filter_by(interacted=True).count()
+        old_file_count = len(os.listdir('/tmp/request_cache'))
         observation = self._ask_agent(*args, **kwargs)
-        new_dom_states_n = self.session.query(DomState).count()
-        new_dom_elements_n = self.session.query(DomElement).filter_by(interacted=True).count()
+        new_file_count = len(os.listdir('/tmp/request_cache'))
         if observation[2] == None:  # Time to count the reward
-            if (new_dom_states_n > old_dom_states_n) or (new_dom_elements_n > old_dom_elements_n):
+            if new_file_count > old_file_count:
                 observation[2] = 10
             else:
                 observation[2] = -4
@@ -533,7 +544,7 @@ class NBrowser(object):
         # if len(filter(lambda x: ((x != None) and (x.dom_states[0].id == state.id)), elements)) == 0: raise NoElementsToInteract()
         if len(filter(lambda x: ((x != None)), elements)) == 0: raise NoElementsToInteract()
         if self._am_i_struck_in_loop(): raise StruckInLoop()
-        if 'localhost' not in state.url: raise SoftResetEnvironment()
+        if not ('dummy' in state.url or 'localhost' in state.url): raise SoftResetEnvironment()
         if action_index == None:
             action_index = self.agent.get_action(state_vector, elements) if not human else self._ask_user(elements)
         self.act_on(elements[action_index])
@@ -609,8 +620,6 @@ class NBrowser(object):
                         value = sibling_e.value
                     else:
                         value = utilities.get_input_value(e, elements)
-                    # Dirty little hack
-                    if e.placeholder == 'Username' or e.placeholder == 'Password': value = 'guest'
                     d_e.send_keys(Keys.COMMAND + 'a')
                     d_e.send_keys(value)
                     payload = value
@@ -670,15 +679,15 @@ if __name__ == "__main__":
         # b.navigate_to_url('https://signup.ballparkapp.com/')
         # b.navigate_to_url('https://hujplpiqmu.ballparkapp.com/session/new')
         # b.navigate_to_url('https://twitter.com/signup')
-        # b.navigate_to_url('http://127.0.0.1:8888')
-        # b.navigate_to_url('http://127.0.0.1:8000')
-        b.navigate_to_url('http://localhost:8080/WebGoat/login.mvc')
+        # b.navigate_to_url('http://dummy:8888')
+        b.navigate_to_url('http://dummy:8000')
+        # b.navigate_to_url('http://localhost:8080/WebGoat/login.mvc')
         b.enhance_state_info()
         # raise KeyboardInterrupt()
         # Pre-train
         for i in range(0, 500):  # Experiment number
             try:
-                for j in range(0, 20):
+                for j in range(0, 5):
                     with open(MODE_FILE, 'r') as f:
                         mode = f.read()
                         if len(mode) > 1: mode = mode[0]
@@ -692,29 +701,25 @@ if __name__ == "__main__":
                             observation = b.ask_agent(human=False)
                         b.train_agent(observation)
                         if observation[2] == 10: raise SoftResetEnvironment()  # Terminal state
-                # if j % 20: raise HardResetEnvironment()
+                if j % 10: raise HardResetEnvironment()
             except (NoElementsToInteract, StruckInLoop, SoftResetEnvironment) as e:
                 logging.info(e.message)
-                # b.navigate_to_url('http://127.0.0.1:8000/delete_everything')  # Custom reset handler built into our webapp
-                """
-                b.d.get('http://127.0.0.1:8000/accounts/logout/')  # Custom reset handler built into our webapp
+                # b.navigate_to_url('http://dummy:8000/delete_everything')  # Custom reset handler built into our webapp
+                b.d.get('http://dummy:8000/accounts/logout/')  # Custom reset handler built into our webapp
                 b.reset(hard=False)
-                b.navigate_to_url('http://127.0.0.1:8000/')  # Custom reset handler built into our webapp
-                """
-                b.d.get('http://localhost:8080/WebGoat/j_spring_security_logout')  # Custom reset handler built into our webapp
-                b.reset(hard=False)
-                time.sleep(SITE_RESPONSE_SLEEP)
+                b.navigate_to_url('http://dummy:8000/')  # Custom reset handler built into our webapp
             except (HardResetEnvironment) as e:
                 logging.info(e.message)
-                """
-                b.d.get('http://127.0.0.1:8000/delete_everything')  # Custom reset handler built into our webapp
-                b.d.get('http://127.0.0.1:8000/accounts/logout/')  # Custom reset handler built into our webapp
+                b.d.get('http://dummy:8000/delete_everything')  # Custom reset handler built into our webapp
+                b.d.get('http://dummy:8000/accounts/logout/')  # Custom reset handler built into our webapp
+
                 b.reset(hard=True)
-                b.navigate_to_url('http://127.0.0.1:8000/')  # Custom reset handler built into our webapp
+                b.navigate_to_url('http://dummy:8000/')  # Custom reset handler built into our webapp
                 """
                 b.d.get('http://localhost:8080/WebGoat/j_spring_security_logout')  # Custom reset handler built into our webapp
                 b.reset(hard=True)
                 time.sleep(SITE_RESPONSE_SLEEP)
+                """
         # Tracer()()
     except KeyboardInterrupt:
         pass

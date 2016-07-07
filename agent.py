@@ -90,9 +90,9 @@ class NAgent(object):
         sens = self._unpickle_doc()
         if sens:
             data = [doc2vec.LabeledSentence(words=words, tags=["SENT_%d" % i]) for i, words in enumerate(sens)]
-            self._d2v = Doc2Vec(data, size=2, min_count=1)
+            self._d2v = Doc2Vec(data, size=10, min_count=1)
         else:
-            self._d2v = Doc2Vec(size=2, min_count=1)
+            self._d2v = Doc2Vec(size=10, min_count=1)
 
     @staticmethod
     def _get_words(phrase):
@@ -128,7 +128,7 @@ class NAgent(object):
         return(vector)
 
     def _pickle_doc(self, tokens):
-        tokens.sort()
+        # tokens.sort()
         tokens = tuple(tokens)
         # Save these tokens to file
         if os.path.exists(self.DOC2VEC_DATA):
@@ -151,7 +151,7 @@ class NAgent(object):
         return(data)
 
     def d2v(self, placeholders):
-        tokens = []
+        tokens = [] # [i.lower() for i in placeholders]
         for p in placeholders:
             tokens += self._get_words(p)
         self._pickle_doc(tokens)
@@ -231,7 +231,7 @@ class NAgent(object):
 
 
 class NeuralNetwork(object):
-    NN_MODEL = 'NN.model'
+    NN_MODEL = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'NN.model')
     def __init__(self, n_state_dims, n_hidden_1, n_hidden_2, n_actions):
         logging.debug("Creating neural network with following architecture")
         logging.debug("Input Vector Length: %d" % (n_state_dims))

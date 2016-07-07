@@ -10,7 +10,8 @@ from ..utilities import clean_placeholder
 
 
 class DummyState(object):
-    elements = []
+    def __init__(self):
+        self.elements = []
 
     def __str__(self):
         s = ''
@@ -35,14 +36,13 @@ class DummyElement(object):
 
 if __name__ == "__main__":
     STATEINFO_DIR = sys.argv[1]
-    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+    # logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     browser = NBrowser()
     for (dirpath, dirnames, filenames) in os.walk(STATEINFO_DIR):
         for file in filenames:
             with open(os.path.join(dirpath, file), 'r') as f:
                 data = json.loads(f.read())
-                print(data)
-            if data:
+            if len(data):
                 state = DummyState()
                 for e in data:
                     if e.get('children', None) and e['tag'] == 'form':
@@ -64,5 +64,7 @@ if __name__ == "__main__":
                                 tag=e['tag'],
                                 placeholder=placeholder,
                                 interacted=random.choice([True, False])))
+                print(state)
+                print('\n\n\n')
                 vector, elements = browser._construct_state_vector(state)
     browser.quit()

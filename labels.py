@@ -1,3 +1,4 @@
+import os
 import json
 import config
 
@@ -5,7 +6,7 @@ from textblob import TextBlob
 from textblob.classifiers import NaiveBayesClassifier
 
 class InputLabeler(object):
-    LABELS_DATA = 'labels_data.json'
+    LABELS_DATA = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'labels_data.json')
     def __init__(self):
         with open(self.LABELS_DATA, 'r') as fp:
             self.c = NaiveBayesClassifier(fp, format="json")
