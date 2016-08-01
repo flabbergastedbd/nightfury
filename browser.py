@@ -18,6 +18,7 @@ import logging
 import collections
 
 from fuzzywuzzy import fuzz
+from rlpy.Domains.Domain import Domain
 from selenium import webdriver
 from selenium.webdriver.remote.remote_connection import LOGGER
 from selenium.webdriver.common.proxy import Proxy, ProxyType
@@ -98,11 +99,10 @@ class DomElement(Base):
 
 SITE_RESPONSE_SLEEP = 3
 
-class NBrowser(object):
+class NBrowser(Domain):
     DB_PATH = 'states.db'
     GRAPH_PATH = 'states.graphml'
     def __init__(self):
-        self._init_logging()
         self._init_selenium_driver()
         self._init_sqlalchemy_session()
         self._init_networkx_graph()
@@ -111,25 +111,11 @@ class NBrowser(object):
         self._current_state_id = 0
         self._input_labeler = labels.InputLabeler()
 
-        self._init_agent()
-        self.reset(hard=True)
 
-    def _init_logging(self):
-        logger = logging.getLogger()
-        formatter = logging.Formatter(
-            "[%(asctime)s] [%(levelname)8s] --- %(message)s (%(filename)s:%(lineno)s)",
-            "%H:%M")
-        logger.setLevel(logging.DEBUG)
-
-        handler = logging.StreamHandler()
-        handler.setFormatter(formatter)
-        handler.setLevel(logging.INFO)
-        logger.addHandler(handler)
-
-        file_handler = logging.FileHandler('/tmp/nightfury.log')
-        file_handler.setFormatter(formatter)
-        file_handler.setLevel(logging.DEBUG)
-        logger.addHandler(file_handler)
+        # Do RLPY Specific stuff
+        self._init_rlpy_variables()
+        super(NBrowser, self).__init__()
+        self.s0()
 
     def _init_selenium_driver(self):
         LOGGER.setLevel(logging.WARNING)
@@ -138,14 +124,17 @@ class NBrowser(object):
         # os.environ['webdriver.chrome.driver'] = CHROMEDRIVER_BIN
         # self.d = webdriver.Chrome(CHROMEDRIVER_BIN)
 
-        firefox_profile = webdriver.FirefoxProfile()
-        firefox_profile.set_preference("network.proxy.type", 1)
-        firefox_profile.set_preference("network.proxy.http", '127.0.0.1') #set your ip
-        firefox_profile.set_preference("network.proxy.http_port", 8080) #set your port
-        self.d = webdriver.Firefox(firefox_profile=firefox_profile)
+        # firefox_profile = webdriver.FirefoxProfile()
+        # firefox_profile.set_preference("network.proxy.type", 1)
+        # firefox_profile.set_preference("network.proxy.http", '127.0.0.1') #set your ip
+        # firefox_profile.set_preference("network.proxy.http_port", 8080) #set your port
+        # self.d = webdriver.Firefox(firefox_profile=firefox_profile)
+        self.d = webdriver.Firefox()
         # self.d.implicitly_wait(1)
 
-        # self.d = webdriver.PhantomJS('/usr/local/bin/phantomjs')
+        # self.d = webdriver.PhantomJS(service_args=[
+        #     '--proxy=127.0.0.1:8080',
+        #     '--proxy-tpe=http'])
         self.d.set_window_size(config.BROWSER_WIDTH, config.BROWSER_HEIGHT)
 
     def _init_sqlalchemy_session(self):
@@ -162,15 +151,24 @@ class NBrowser(object):
         else:
             self.DG = nx.DiGraph()
 
-    def _init_agent(self):
-        self.FORM_DIM = 3
-        self.LINK_DIM = 3
+    def _init_rlpy_variables(self):
         self.LABEL_DIM = self._input_labeler.get_num_labels()
-        self.FORM_N = 2
-        self.LINK_N = 12
-        form_dims = self.FORM_N * self.FORM_DIM # No. of forms * Form vector dimension
-        link_dims = self.LINK_N * self.LINK_DIM # No. of links * Link vector dimension
-        self.agent = agent.NAgent(n_state_dims=10, n_actions=self.FORM_N+self.LINK_N)
+        self.FORM_N = config.STATE_FORM_N
+        self.LINK_N = config.STATE_LINK_N
+
+        state_d2v_dim = config.STATE_D2V_DIM
+        self.statespace_limits = np.array([[-1, 1] for i in range(0, state_d2v_dim)] +
+                [[0, 1] for i in range(0, self.LABEL_DIM)])
+        self.continuous_dims = [i for i in range(0, state_d2v_dim)]
+        self.DimNames = ['D2V']*state_d2v_dim + ['Label']*self.LABEL_DIM
+        self.episodeCap = 5
+        self.actions_num = self.FORM_N + self.LINK_N
+        self.discount_factor = 0.6
+
+    def s0(self):
+        self.reset(hard=True)
+        self.navigate_to_url('http://127.0.0.1:8000')
+        self.enhance_state_info()
 
     def navigate_to_url(self, url):
         self.d.get(url)
@@ -336,7 +334,7 @@ class NBrowser(object):
         self.session.commit()
         return(state)
 
-    def quit(self):
+    def close(self):
         """
         A method to cleanly close everything
         """
@@ -496,16 +494,11 @@ class NBrowser(object):
         self._action_history = []
 
     def reset(self, hard=True):
-        if self.session and hard == True:
-                logging.info("Cleaning all data in state db")
-                self.session.query(DomElement).delete()
-                self.session.query(DomState).delete()
-                self.session.commit()
-                # Clear request cache
-                tmp_dir = '/tmp/request_cache'
-                if os.path.exists(tmp_dir):
-                    shutil.rmtree(tmp_dir)
-                    os.mkdir(tmp_dir)
+        if hard == True:
+            logging.info("Cleaning all data in state db")
+            self.session.query(DomElement).delete()
+            self.session.query(DomState).delete()
+            self.session.commit()
         self._reset_action_history()
 
     def _add_action_history(self, element):
@@ -525,43 +518,42 @@ class NBrowser(object):
         print('\n')
         return(int(raw_input('Select an action index > ')))
 
-    def ask_agent(self, *args, **kwargs):
+    def step(self, a):
         # Save some variables
-        old_file_count = len(os.listdir('/tmp/request_cache'))
-        observation = self._ask_agent(*args, **kwargs)
-        new_file_count = len(os.listdir('/tmp/request_cache'))
-        if observation[2] == None:  # Time to count the reward
-            if new_file_count > old_file_count:
-                observation[2] = 10
-            else:
-                observation[2] = -4
+        old_num_states = self.session.query(DomState).count()
+        observation = self._custom_step(a)
+        new_num_states = self.session.query(DomState).count()
+        if new_num_states > old_num_states:
+            observation[2] = 10
+        else:
+            observation[2] = -4
         return(observation)
 
-    def _ask_agent(self, human=False, action_index=None):
+    def _custom_step(self, action_index):
         state = self.get_current_state()
         state_vector, elements = self._construct_state_vector(state)
         state_vector = state_vector.tolist()
-        # if len(filter(lambda x: ((x != None) and (x.dom_states[0].id == state.id)), elements)) == 0: raise NoElementsToInteract()
-        if len(filter(lambda x: ((x != None)), elements)) == 0: raise NoElementsToInteract()
-        if self._am_i_struck_in_loop(): raise StruckInLoop()
-        if not ('dummy' in state.url or 'localhost' in state.url): raise SoftResetEnvironment()
-        if action_index == None:
-            action_index = self.agent.get_action(state_vector, elements) if not human else self._ask_user(elements)
         self.act_on(elements[action_index])
         if self.save_state(): self.enhance_state_info()
         new_state = self.get_current_state()
         new_state_vector, new_elements = self._construct_state_vector(new_state)
         new_state_vector = new_state_vector.tolist()
-        # Add to action history to avoid struck
-        if state.id != new_state.id:
-            self._reset_action_history()
-        else:
-            self._add_action_history(elements[action_index])
-        return([state_vector, action_index, None, new_state_vector])  # Reward is None, which will be filled and fed to train
+        return([None, new_state_vector, False, self._non_none_indices(new_elements)])  # Reward is None, which will be filled and fed to train
 
-    def train_agent(self, obs):
-        logging.info("Integrating observation with reward %d" % (obs[2]))
-        self.agent.integrate(*obs)
+    def isTerminal(self):
+        return(False)
+
+    def possibleActions(self):
+        """
+        Called to get the list of indices of possible actions of current state
+        """
+        state = self.get_current_state()
+        state_vector, elements = self._construct_state_vector(state)
+        return(self._non_none_indices(elements))
+
+    @staticmethod
+    def _non_none_indices(l):
+        return([i for i, e in enumerate(l) if e != None])
 
     def act_on(self, element):
         # Save few values for reward calculation
@@ -680,7 +672,7 @@ if __name__ == "__main__":
         # b.navigate_to_url('https://hujplpiqmu.ballparkapp.com/session/new')
         # b.navigate_to_url('https://twitter.com/signup')
         # b.navigate_to_url('http://dummy:8888')
-        b.navigate_to_url('http://dummy:8000')
+        b.navigate_to_url('http://127.0.0.1:8000')
         # b.navigate_to_url('http://localhost:8080/WebGoat/login.mvc')
         b.enhance_state_info()
         # raise KeyboardInterrupt()
@@ -705,16 +697,16 @@ if __name__ == "__main__":
             except (NoElementsToInteract, StruckInLoop, SoftResetEnvironment) as e:
                 logging.info(e.message)
                 # b.navigate_to_url('http://dummy:8000/delete_everything')  # Custom reset handler built into our webapp
-                b.d.get('http://dummy:8000/accounts/logout/')  # Custom reset handler built into our webapp
+                b.d.get('http://127.0.0.1:8000/accounts/logout/')  # Custom reset handler built into our webapp
                 b.reset(hard=False)
-                b.navigate_to_url('http://dummy:8000/')  # Custom reset handler built into our webapp
+                b.navigate_to_url('http://127.0.0.1:8000/')  # Custom reset handler built into our webapp
             except (HardResetEnvironment) as e:
                 logging.info(e.message)
                 b.d.get('http://dummy:8000/delete_everything')  # Custom reset handler built into our webapp
                 b.d.get('http://dummy:8000/accounts/logout/')  # Custom reset handler built into our webapp
 
                 b.reset(hard=True)
-                b.navigate_to_url('http://dummy:8000/')  # Custom reset handler built into our webapp
+                b.navigate_to_url('http://127.0.0.1:8000/')  # Custom reset handler built into our webapp
                 """
                 b.d.get('http://localhost:8080/WebGoat/j_spring_security_logout')  # Custom reset handler built into our webapp
                 b.reset(hard=True)

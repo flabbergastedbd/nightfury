@@ -13,3 +13,8 @@ ADDRESS_INPUT = 'Australia'
 DATE_INPUT = '25/12/1993'
 TEXT_INPUT = ''.join([random.choice(list(string.lowercase)) for i in range(0, 7)])
 PASSWORD_INPUT = ''.join([random.choice(list(string.lowercase)) for i in range(0, 3)]) + random.choice(list(string.uppercase)) + '7!'
+
+
+STATE_D2V_DIM = 5
+STATE_FORM_N = 2
+STATE_LINK_N = 12
