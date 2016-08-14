@@ -1,4 +1,5 @@
 import os
+import d2v
 import sys
 import json
 import uuid
@@ -13,12 +14,10 @@ import numpy as np
 import networkx as nx
 import traceback
 import labels
-import agent
 import logging
 import collections
 
 from fuzzywuzzy import fuzz
-from rlpy.Domains.Domain import Domain
 from selenium import webdriver
 from selenium.webdriver.remote.remote_connection import LOGGER
 from selenium.webdriver.common.proxy import Proxy, ProxyType
@@ -99,10 +98,12 @@ class DomElement(Base):
 
 SITE_RESPONSE_SLEEP = 3
 
-class NBrowser(Domain):
+class NBrowser(object):
     DB_PATH = 'states.db'
     GRAPH_PATH = 'states.graphml'
     def __init__(self):
+        self.d2v = d2v.D2V()
+
         self._init_selenium_driver()
         self._init_sqlalchemy_session()
         self._init_networkx_graph()
@@ -110,12 +111,6 @@ class NBrowser(Domain):
         self.seed = uuid.uuid4().hex[:5]
         self._current_state_id = 0
         self._input_labeler = labels.InputLabeler()
-
-
-        # Do RLPY Specific stuff
-        self._init_rlpy_variables()
-        super(NBrowser, self).__init__()
-        self.s0()
 
     def _init_selenium_driver(self):
         LOGGER.setLevel(logging.WARNING)
@@ -138,8 +133,8 @@ class NBrowser(Domain):
         self.d.set_window_size(config.BROWSER_WIDTH, config.BROWSER_HEIGHT)
 
     def _init_sqlalchemy_session(self):
-        # self.engine = create_engine("sqlite:///" + self.DB_PATH)
-        self.engine = create_engine("postgresql+psycopg2://nightfury:nightfury@127.0.0.1:5432/states")
+        self.engine = create_engine("sqlite:///" + self.DB_PATH)
+        # self.engine = create_engine("postgresql+psycopg2://nightfury:nightfury@127.0.0.1:5432/states")
         Base.metadata.create_all(self.engine)
         self.session_factory = sessionmaker(bind=self.engine)
         self.scoped_factory = scoped_session(self.session_factory)
@@ -150,25 +145,6 @@ class NBrowser(Domain):
             self.DG = nx.read_graphml(self.GRAPH_PATH, node_type=int)
         else:
             self.DG = nx.DiGraph()
-
-    def _init_rlpy_variables(self):
-        self.LABEL_DIM = self._input_labeler.get_num_labels()
-        self.FORM_N = config.STATE_FORM_N
-        self.LINK_N = config.STATE_LINK_N
-
-        state_d2v_dim = config.STATE_D2V_DIM
-        self.statespace_limits = np.array([[-1, 1] for i in range(0, state_d2v_dim)] +
-                [[0, 1] for i in range(0, self.LABEL_DIM)])
-        self.continuous_dims = [i for i in range(0, state_d2v_dim)]
-        self.DimNames = ['D2V']*state_d2v_dim + ['Label']*self.LABEL_DIM
-        self.episodeCap = 5
-        self.actions_num = self.FORM_N + self.LINK_N
-        self.discount_factor = 0.6
-
-    def s0(self):
-        self.reset(hard=True)
-        self.navigate_to_url('http://127.0.0.1:8000')
-        self.enhance_state_info()
 
     def navigate_to_url(self, url):
         self.d.get(url)
@@ -276,7 +252,9 @@ class NBrowser(Domain):
             new = True
         return(state, elements, new)
 
-    def _construct_state_vector(self, state, labels=None):
+    def get_state_vector(self, state=None, labels=None):
+        if state == None:
+            state = self.get_current_state()
         forms = collections.OrderedDict()
         links = collections.OrderedDict()
         for e in state.elements:
@@ -316,7 +294,16 @@ class NBrowser(Domain):
                 # state_words = np.concatenate((state_words, np.zeros(self.LINK_DIM)))
                 elements.append(None)
         state_words += labels.keys()
-        return(self.agent.d2v(state_words), elements)
+        return(self.d2v.calculate(state_words), elements)
+
+    def get_state_vector_limits(self):
+        return([[-1, 1]] * config.STATE_D2V_DIM + [[0, 1]] * self._input_labeler.get_num_labels())
+
+    def get_actions_num(self):
+        return(config.STATE_FORM_N + config.STATE_LINK_N)
+
+    def get_continuous_dimensions(self):
+        return(range(0, config.STATE_D2V_DIM))
 
     def save_state(self):
         """
@@ -340,8 +327,7 @@ class NBrowser(Domain):
         """
         nx.write_graphml(self.DG, path=self.GRAPH_PATH)
         self.session.close()
-        if self.agent:
-            self.agent.close()
+        self.d2v.close()
         # Keep webdriver for end, because it might have errors
         self.d.quit()
 
@@ -518,41 +504,8 @@ class NBrowser(Domain):
         print('\n')
         return(int(raw_input('Select an action index > ')))
 
-    def step(self, a):
-        # Save some variables
-        old_num_states = self.session.query(DomState).count()
-        observation = self._custom_step(a)
-        new_num_states = self.session.query(DomState).count()
-        if new_num_states > old_num_states:
-            observation[2] = 10
-        else:
-            observation[2] = -4
-        return(observation)
-
-    def _custom_step(self, action_index):
-        state = self.get_current_state()
-        state_vector, elements = self._construct_state_vector(state)
-        state_vector = state_vector.tolist()
-        self.act_on(elements[action_index])
-        if self.save_state(): self.enhance_state_info()
-        new_state = self.get_current_state()
-        new_state_vector, new_elements = self._construct_state_vector(new_state)
-        new_state_vector = new_state_vector.tolist()
-        return([None, new_state_vector, False, self._non_none_indices(new_elements)])  # Reward is None, which will be filled and fed to train
-
-    def isTerminal(self):
-        return(False)
-
-    def possibleActions(self):
-        """
-        Called to get the list of indices of possible actions of current state
-        """
-        state = self.get_current_state()
-        state_vector, elements = self._construct_state_vector(state)
-        return(self._non_none_indices(elements))
-
     @staticmethod
-    def _non_none_indices(l):
+    def non_none_indices(l):
         return([i for i, e in enumerate(l) if e != None])
 
     def act_on(self, element):
@@ -562,6 +515,8 @@ class NBrowser(Domain):
         elif element.tag == 'a':
             self.click_link(element)
         time.sleep(SITE_RESPONSE_SLEEP)
+        # Save state if something changed
+        if self.save_state(): self.enhance_state_info()
 
     def click_link(self, element):
         try:
@@ -655,67 +610,3 @@ class NBrowser(Domain):
         else:
             logging.info("Form fill considered as success")
             return(True)
-
-
-if __name__ == "__main__":
-    try:
-        MODE_FILE = '/tmp/nightfury.mode'
-        if not os.path.exists(MODE_FILE):
-            with open(MODE_FILE, 'w') as f:
-                f.write('m')
-        b = None
-        b = NBrowser()
-        # b.navigate_to_url('file:///Users/tunnelshade/Downloads/YodleeLabs-Registration.htm')
-        # b.navigate_to_url('https://moneycenter.yodlee.com/moneycenter/mfaregistration.moneycenter.do?_flowId=mfaregistration&c=csit_key%3AVZl14EfWF4rGSHQ1F6NEZWFU%2Bo8%3D&l=_flowId')
-        # b.navigate_to_url('http://clin.cmcvellore.ac.in/onlineIPO/Patdetails/Home.aspx')
-        # b.navigate_to_url('https://signup.ballparkapp.com/')
-        # b.navigate_to_url('https://hujplpiqmu.ballparkapp.com/session/new')
-        # b.navigate_to_url('https://twitter.com/signup')
-        # b.navigate_to_url('http://dummy:8888')
-        b.navigate_to_url('http://127.0.0.1:8000')
-        # b.navigate_to_url('http://localhost:8080/WebGoat/login.mvc')
-        b.enhance_state_info()
-        # raise KeyboardInterrupt()
-        # Pre-train
-        for i in range(0, 500):  # Experiment number
-            try:
-                for j in range(0, 5):
-                    with open(MODE_FILE, 'r') as f:
-                        mode = f.read()
-                        if len(mode) > 1: mode = mode[0]
-                    if mode == 'p':
-                        b.agent.replay()
-                        time.sleep(5)
-                    else:
-                        if mode == 'h':
-                            observation = b.ask_agent(human=True)
-                        else:
-                            observation = b.ask_agent(human=False)
-                        b.train_agent(observation)
-                        if observation[2] == 10: raise SoftResetEnvironment()  # Terminal state
-                if j % 10: raise HardResetEnvironment()
-            except (NoElementsToInteract, StruckInLoop, SoftResetEnvironment) as e:
-                logging.info(e.message)
-                # b.navigate_to_url('http://dummy:8000/delete_everything')  # Custom reset handler built into our webapp
-                b.d.get('http://127.0.0.1:8000/accounts/logout/')  # Custom reset handler built into our webapp
-                b.reset(hard=False)
-                b.navigate_to_url('http://127.0.0.1:8000/')  # Custom reset handler built into our webapp
-            except (HardResetEnvironment) as e:
-                logging.info(e.message)
-                b.d.get('http://dummy:8000/delete_everything')  # Custom reset handler built into our webapp
-                b.d.get('http://dummy:8000/accounts/logout/')  # Custom reset handler built into our webapp
-
-                b.reset(hard=True)
-                b.navigate_to_url('http://127.0.0.1:8000/')  # Custom reset handler built into our webapp
-                """
-                b.d.get('http://localhost:8080/WebGoat/j_spring_security_logout')  # Custom reset handler built into our webapp
-                b.reset(hard=True)
-                time.sleep(SITE_RESPONSE_SLEEP)
-                """
-        # Tracer()()
-    except KeyboardInterrupt:
-        pass
-    except Exception, e:
-        print(traceback.print_exc())
-    finally:
-        if b: b.quit()
