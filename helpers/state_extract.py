@@ -4,7 +4,6 @@ import json
 import random
 import logging
 
-from ..agent import NAgent
 from ..browser import NBrowser
 from ..utilities import clean_placeholder
 
@@ -65,6 +64,7 @@ if __name__ == "__main__":
                                 placeholder=placeholder,
                                 interacted=random.choice([True, False])))
                 print(state)
+                vector, elements = browser.get_state_vector(state=state)
+                print(vector)
                 print('\n\n\n')
-                vector, elements = browser._construct_state_vector(state)
-    browser.quit()
+    browser.close()

@@ -263,13 +263,13 @@ class NBrowser(object):
                 for c in e.children:
                     if c.placeholder: placeholders.append(c.placeholder)
                 if placeholders:
-                    if e.interacted: placeholders.append('filled')
+                    if e.interacted: placeholders = [i + ' filled' for i in placeholders]
                     forms[e] = placeholders
             elif e.tag == 'a':
                 if e.placeholder:
-                    placeholder = [e.placeholder]
-                    if e.interacted: placeholder += ['clicked']
-                    links[e] = placeholder
+                    placeholder = e.placeholder
+                    if e.interacted: placeholder += ' clicked'
+                    links[e] = [placeholder]
         if labels == None:
             labels = collections.OrderedDict()
             for label in self._input_labeler.get_labels():
@@ -277,7 +277,7 @@ class NBrowser(object):
                     labels[label] = 1.0
         state_words = []
         elements = []
-        for i in range(0, self.FORM_N):
+        for i in range(0, config.STATE_FORM_N):
             try:
                 form = forms.items()[i]
                 state_words += form[1]
@@ -285,7 +285,7 @@ class NBrowser(object):
             except IndexError:
                 # state_words = np.concatenate((state_words, np.zeros(self.FORM_DIM)))
                 elements.append(None)
-        for i in range(0, self.LINK_N):
+        for i in range(0, config.STATE_LINK_N):
             try:
                 link = links.items()[i]
                 state_words += link[1]

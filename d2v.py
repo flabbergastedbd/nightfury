@@ -42,14 +42,6 @@ class D2V(object):
                     pass
         return(data)
 
-    def _load_d2v(self):
-        sens = self._unpickle_doc()
-        if sens:
-            data = [doc2vec.LabeledSentence(words=words, tags=["SENT_%d" % i]) for i, words in enumerate(sens)]
-            self._d2v = Doc2Vec(data, size=5, min_count=1)
-        else:
-            self._d2v = Doc2Vec(size=5, min_count=1)
-
     @staticmethod
     def _get_words(phrase):
         phrase = phrase.lower()

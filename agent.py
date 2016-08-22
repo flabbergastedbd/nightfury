@@ -22,7 +22,7 @@ class NDomain(Domain):
     def __init__(self, b):
         self.b = b  # Browser
 
-        self.statespace_limits = self.b.get_state_vector_limits()
+        self.statespace_limits = np.array(self.b.get_state_vector_limits())
         self.continuous_dims = self.b.get_continuous_dimensions()
         self.DimNames = ['DimName'] * len(self.statespace_limits)
         self.episodeCap = 5
@@ -42,14 +42,14 @@ class NDomain(Domain):
         return(self.b.non_none_indices(elements))
 
     def isTerminal(self):
-        return(False)
+        return(bool(re.findall('logout', self.b.get_current_state().text, re.IGNORECASE)))
 
     def step(self, a):
         state_vector, elements = self.b.get_state_vector()
         self.b.act_on(elements[a])
         new_state_vector, new_elements = self.b.get_state_vector()
         terminal = self.isTerminal()
-        reward = GOAL_REWARD if terminal else STEP_REWARD
+        reward = self.GOAL_REWARD if terminal else self.STEP_REWARD
         return(reward, new_state_vector, terminal, self.possibleActions(elements=new_elements))
 
     def __deepcopy__(self, memo):
