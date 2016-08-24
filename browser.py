@@ -51,7 +51,7 @@ class DomState(Base):
     absolute = Column(Boolean, default=False)
     nlp_analysis = Column(Boolean, default=False)
     screenshot = Column(String)
-    ssim_minimum = Column(Float, default=0.99)
+    ssim_minimum = Column(Float, default=1)
 
     def __str__(self):
         return("ID: %d ABSOLUTE: %s URL: %s" % (self.id, self.absolute, self.url))
@@ -82,8 +82,8 @@ class DomElement(Base):
         order_by="DomState.id")
 
     def __str__(self):
-        return("Tag: %s Placeholder: %s Label: %s Xpath: %s Location: (%d, %d) Size: %d width, %d height)" % (
-            self.tag, self.placeholder, self.label, self.xpath, self.location_x, self.location_y, self.size_w, self.size_h))
+        return("Tag: %s Placeholder: %s Label: %s Xpath: %s" % (
+            self.tag, self.placeholder, self.label, self.xpath))
 
     @hybrid_property
     def help_vector(self):
@@ -96,7 +96,7 @@ class DomElement(Base):
         else:
             return(False)
 
-SITE_RESPONSE_SLEEP = 3
+SITE_RESPONSE_SLEEP = 5
 
 class NBrowser(object):
     DB_PATH = 'states.db'
@@ -115,19 +115,20 @@ class NBrowser(object):
     def _init_selenium_driver(self):
         LOGGER.setLevel(logging.WARNING)
 
-        # CHROMEDRIVER_BIN = '/usr/local/bin/chromedriver'
+        CHROMEDRIVER_BIN = '/usr/lib/chromium-browser/chromedriver'
         # os.environ['webdriver.chrome.driver'] = CHROMEDRIVER_BIN
-        # self.d = webdriver.Chrome(CHROMEDRIVER_BIN)
+        self.d = webdriver.Chrome(executable_path=CHROMEDRIVER_BIN)
 
         # firefox_profile = webdriver.FirefoxProfile()
         # firefox_profile.set_preference("network.proxy.type", 1)
         # firefox_profile.set_preference("network.proxy.http", '127.0.0.1') #set your ip
         # firefox_profile.set_preference("network.proxy.http_port", 8080) #set your port
         # self.d = webdriver.Firefox(firefox_profile=firefox_profile)
-        self.d = webdriver.Firefox()
+        # self.d = webdriver.Firefox()
         # self.d.implicitly_wait(1)
 
-        # self.d = webdriver.PhantomJS(service_args=[
+        # self.d = webdriver.PhantomJS('/home/tunnelshade/Downloads/phantomjs')
+        #   service_args=[
         #     '--proxy=127.0.0.1:8080',
         #     '--proxy-tpe=http'])
         self.d.set_window_size(config.BROWSER_WIDTH, config.BROWSER_HEIGHT)
@@ -188,6 +189,9 @@ class NBrowser(object):
             if ssim > old_state_obj.ssim_minimum:
                 logging.debug("State matched using SSIM of %f (%s, %s)" % (ssim, old_state_obj.screenshot, new_state_obj.screenshot))
                 match = True
+            elif old_state_obj.text == new_state_obj.text:
+                logging.debug("State matched using text")
+                match = True
             if match == True:
                 return(old_state_obj)
         return(None)
@@ -213,20 +217,16 @@ class NBrowser(object):
         elem = None
         if self.session.query(DomElement).count() > 0:
             query = self.session.query(DomElement)
-            if new_elem_obj.placeholder:
-                query = query.filter_by(tag=new_elem_obj.tag, placeholder=new_elem_obj.placeholder)
-            else:
+            if new_elem_obj.placeholder and new_elem_obj.tag in config.LINK_INPUT_TYPES:
                 query = query.filter_by(
-                    name=new_elem_obj.name,
-                    location_x=new_elem_obj.location_x,
-                    location_y=new_elem_obj.location_y,
-                    size_w=new_elem_obj.size_w,
-                    size_h=new_elem_obj.size_h)
+                    tag=new_elem_obj.tag,
+                    placeholder=new_elem_obj.placeholder)
             elem = query.first()
         return(elem)
 
     def _construct_current_state(self):
         logging.info('Constructing the current state as object')
+        old_state_obj = self.get_current_state()
         new_state_obj = DomState(
             dom=self.d.execute_script("return document.documentElement.outerHTML;"),
             text=self.d.find_element_by_tag_name('body').text,
@@ -248,7 +248,7 @@ class NBrowser(object):
             state = self._add_state(new_state_obj, elements)
             self.DG.add_node(state.id, url=state.url, absolute=state.absolute, seed=self.seed)
             self._current_state_id = state.id
-            logging.info("Adding new state as no existing matched (ID: %d Absolute: %s URL : %s)" % (state.id, state.absolute, state.url))
+            logging.info("Adding new state as no existing matched (ID: %d Absolute: %s URL : %s Snap: %s)" % (state.id, state.absolute, state.url, state.screenshot))
             new = True
         return(state, elements, new)
 
@@ -480,7 +480,8 @@ class NBrowser(object):
         self._action_history = []
 
     def reset(self, hard=True):
-        if hard == True:
+        self.d.delete_all_cookies()
+        if False: # hard == True:
             logging.info("Cleaning all data in state db")
             self.session.query(DomElement).delete()
             self.session.query(DomState).delete()
@@ -509,20 +510,29 @@ class NBrowser(object):
         return([i for i, e in enumerate(l) if e != None])
 
     def act_on(self, element):
+        old_state_obj = self.get_current_state()
         # Save few values for reward calculation
         if element.tag == 'form':
             self.fill_form(element)
         elif element.tag == 'a':
             self.click_link(element)
+        logging.debug("Sleeping")
         time.sleep(SITE_RESPONSE_SLEEP)
+        logging.debug("Waking up")
         # Save state if something changed
         if self.save_state(): self.enhance_state_info()
+        new_state_obj = self.get_current_state()
 
     def click_link(self, element):
         try:
             logging.info("Trying to click %s" % (str(element.placeholder)))
             selenium_elem = self.d.find_element_by_xpath(element.xpath)
-            selenium_elem.click()
+            if selenium_elem.is_displayed():
+                selenium_elem.click()
+            else:
+                logging.info("Element not displayed, trying to find another link with same text")
+                selenium_elem = self.d.find_element_by_link_text(str(element.placeholder))
+                selenium_elem.click()
             element.interacted = True
             self._update_element(element)
         except NoSuchElementException:
@@ -567,7 +577,7 @@ class NBrowser(object):
                         value = sibling_e.value
                     else:
                         value = utilities.get_input_value(e, elements)
-                    d_e.send_keys(Keys.COMMAND + 'a')
+                    d_e.send_keys(Keys.CONTROL + 'a')
                     d_e.send_keys(value)
                     payload = value
                 if payload:

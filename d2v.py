@@ -65,9 +65,11 @@ class D2V(object):
         return([unicode(w) for w in words])
 
     def calculate(self, placeholders):
-        tokens = [] # [i.lower() for i in placeholders]
+        tokens = [i.lower() for i in placeholders]
+        """
         for p in placeholders:
             tokens += self._get_words(p)
+        """
         self._pickle_doc(tokens)
         try: # If no samples are trained
             vector = self._d2v.infer_vector(tokens)
